@@ -1,0 +1,15 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{elpi}[2023/11/17 Extended LaTeX Paramter Interface Package]
+
+\RequirePackage{ifthen}
+\RequirePackage{luapackageloader}
+
+\directlua{elpi = require('elpi')}
+
+\newcommand*\strictparams{\directlua{elpi.set_strict()}}
+\newcommand*\ifparam[3]{\ifthenelse{\boolean{#1}}{#2}{#3}}
+\newcommand*\param[1]{\directlua{elpi.param('#1')}}
+\newcommand*\fortablerow[2][formatrows]{\directlua{elpi.format_rows('#1', '#2')}}
+\newcommand*\loadrecipe[1][]{\directlua{elpi.recipe('#1')}}
+\newcommand*\loadpayload[1][]{\directlua{elpi.params('#1')}}
+

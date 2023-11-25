@@ -1,0 +1,97 @@
+\documentclass{ltxdoc}
+\usepackage[titlepage]{gitinfo-lua}
+\usepackage{listings}
+\usepackage{elpi}
+\usepackage{multicol}
+\usepackage{calc}
+\usepackage{hyperref,embedfile}
+%\usepackage{navigator}
+
+% embedding links:
+% https://tex.stackexchange.com/questions/19025/embed-link-to-an-embedded-file
+% https://stackoverflow.com/questions/59868631/can-i-attach-embed-a-file-to-a-latex-document-and-hyperlink-it-to-a-word-for-sav
+\embedfile[desc={Parameter Specification Example},filespec=example-specification.yaml]{example/example-specification.yaml}
+\embedfile[desc={Values Specification Example},filespec=example.yaml]{example/example.yaml}
+
+%\embeddedfile[Parameter Specification Example]{example-spec}[example-specification.yaml]{example/example-specification.yaml}
+%\embeddedfile[Values Specification Example]{example}[example.yaml]{example/example.yaml}
+
+\def\projecturl{https://github.com/Xerdi/epi}
+
+\newcommand\showexample[5][15pt]{%
+\begin{minipage}[t]{.5\linewidth - .5 \columnsep}%
+\lstinputlisting[firstnumber={#2},linerange={#3},style=YAML,frame=single,numbers=left,xleftmargin=0pt,numbersep=10pt]{example/example-specification.yaml}
+\end{minipage}\hspace*{\columnsep}%
+\begin{minipage}[t]{.5\linewidth - .5 \columnsep}%
+\lstinputlisting[firstnumber={#4},linerange={#5},style=YAML,frame=single,numbers=left,xleftmargin={#1},numbersep=10pt]{example/example.yaml}
+\end{minipage}\\%
+}
+
+\begin{document}
+    \title{Extended \LaTeX{} Parameter Interface\thanks{This document corresponds to \texttt{doc-payload-spec} version \gitversion, written on \gitdate}}
+    \maketitle
+
+    \begin{abstract}
+        This package is meant for interfacing Lua\LaTeX{} documents in a more programmatically way with YAML\@.
+        The payload specification is a set of document parameters, which can be specified using \TeX{} macros or using an external specification file called a \textit{recipe}.
+        The payload itself is always provided as external file and can optionally be passed through the commandline to avoid changes in the \LaTeX{} document source.
+    \end{abstract}
+
+    \section{Usage}
+    Before loading any \meta{payload}, the \meta{recipe} has to be loaded or specified in advance.
+    Otherwise, errors will occur.
+    \DescribeMacro{\loadrecipe}
+    In order to load a recipe the macro \cmd{\loadrecipe}\oarg{namespace}\marg{filename} can be used.
+    Where the \meta{filename} is a YAML file with its corresponding extension.
+    The optional \meta{namespace} is only a placeholder in order to prevent any conflicts between duplicate \meta{key}s.
+    \DescribeMacro{\loadpayload} The same behaviour counts for \cmd{\loadpayload}\oarg{namespace}\marg{filename}.
+
+    \clearpage
+    \section{Parameter Specification}
+    Every parameter specified has a \meta{type} set.
+    Optionally there is a choice between setting a \meta{default} or a \meta{placeholder} for the parameter.
+    \begin{description}
+        \item[bool] the type boolean doesn't have a textual representation, but rather provides a \LaTeX{} \textit{if} mechanism.
+        Therefore, only the \meta{default} setting makes sense.\\[5pt]
+        \hspace*{5pt}\parbox{\linewidth-5pt}{%
+            \hfill\href{example/example-specification.yaml}{\texttt{Parameters}}\hfill\hspace*{\columnsep}%
+            \hfill\href{example/example.yaml}{\texttt{Variables}}\hfill\hspace*{\columnsep}}\\%
+        \showexample{1}{1-3}{1}{1-1}
+        \DescribeMacro{\ifparam}
+        In order to embed the boolean in the \LaTeX{} document you can use the \cmd{\ifparam}\marg{name}\marg{true code}\marg{false code} macro.
+        The macro is just a wrapper for the boolean package \texttt{ifthen}, which supports spaces in names.
+        \item[string] representing a piece of text.
+        All \TeX{} related symbols in the text, like \textbackslash, \% or \#, are escaped.\\
+        \showexample{4}{4-6}{2}{2-2}
+        \DescribeMacro{\param} A string type can easily be placed in \LaTeX{} using the \cmd{\param}\marg{name} macro.
+        \item[number] representing a number, like the number type of Lua.
+        In most cases it's necessary to use \meta{default} instead of \meta{placeholder}, especially when the number is used in calculations, since a placeholder will cause errors in \LaTeX{} calculations.\\
+        \showexample{7}{7-9}{3}{3-3}
+        A number type can also be used with \cmd{\param}, just like the string type.
+        \item[list] representing a list of values.
+        The value type is specified by \meta{value type}.
+        A \meta{default} setting can be set.
+        Due to its structure, a \meta{placeholder} would be somewhat incompatible with the corresponding macros.
+        However, a placeholder can be simulated by setting the placeholders as children of the \meta{default} list.\\
+        \showexample{10}{10-15}{4}{4-6}
+        \DescribeMacro{\doparamlist} For typesetting list types in a document the most trivial command would be \cmd{\doparamlist}\oarg{namespace}\marg{name}.
+        Advanced features, like altering the conjunction of list items can be achieved by renewing the appropriate commands.
+        \DescribeMacro{\paramlist@conjunction}
+
+        \DescribeMacro{\forcsparamlist}
+        There's also the \cmd{\forcsparamlist}\oarg{namespace}\marg{name}\marg{csname} command for that takes a \meta{csname} and will execute it for every item.
+        This command doesn't handle advanced features like altering the conjunction.
+        Though, some utility commands will be set, which are only available in the \meta{csname}s implementation, in order to achieve the same goal.
+        \item[object] representing a list of key value pairs.
+        This parameter type requires a \meta{props} specification to be set.\\
+        \showexample{16}{16-24}{7}{7-9}
+        \item[table] representing a table.
+        This parameter type requires a \meta{columns} specification to be set.\\
+        \showexample[20pt]{25}{25}{10}{10}
+    \end{description}
+
+%    \section{Full Specification Example}
+%    \lstinputlisting[language=yaml,frame=single,caption={example-specification.yaml},captionpos=t,numbers=left]{example/example-specification.yaml}
+%
+%    \lstinputlisting[language=yaml,frame=single,caption={exampe.yaml},captionpos=t,numbers=left]{example/example.yaml}
+\end{document}

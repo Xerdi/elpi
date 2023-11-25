@@ -1,0 +1,33 @@
+bool example:
+  type: bool
+  default: false
+string example:
+  type: string
+  placeholder: Type in a string
+number example:
+  type: number
+  default: -1
+list example:
+  type: list
+  value type: string
+  default:
+    - Type in a string
+    - Type in a second string
+object example:
+  type: object
+  fields:
+    name:
+      type: string
+      placeholder: Type in your name
+    email:
+      type: string
+      placeholder: Type in your email
+table example:
+  type: table
+  columns:
+    description:
+      type: string
+      placeholder: Type in the work description
+    price:
+      type: number
+      placeholder: Type in the price
