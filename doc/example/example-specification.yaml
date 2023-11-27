@@ -9,7 +9,7 @@ number example:
   default: -1
 list example:
   type: list
-  value type: string
+  item type: string
   default:
     - Type in a string
     - Type in a second string

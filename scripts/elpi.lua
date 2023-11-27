@@ -42,15 +42,15 @@ texio.write_nl('\n')
 
 -- Parsing commandline arguments
 local recipe_file
-local params_file
+local payload_file
 for _, a in ipairs(arg) do
     if string.find(a, '-recipe=.*') then
         recipe_file = string.gsub(a, '-recipe=(.*)', '%1')
         texio.write_nl("Info: using recipe file '" .. recipe_file .. "'.\n")
     end
     if string.find(a, '-params=.*') then
-        params_file = string.gsub(a, '-params=(.*)', '%1')
-        texio.write_nl("Info: using params file '" .. params_file .. "'.\n")
+        payload_file = string.gsub(a, '-params=(.*)', '%1')
+        texio.write_nl("Info: using params file '" .. payload_file .. "'.\n")
     end
 end
 texio.write_nl('\n')
@@ -91,7 +91,7 @@ if not status then
     tex.error('Error: no YAML support!')
 end
 local recipe_loaded = false
-local params_loaded = false
+local payload_loaded = false
 
 local function load_resource(filename)
     if yaml then
@@ -124,12 +124,22 @@ str_param = {
 number_param = {
     type = 'number'
 }
-currency_param = {
-    type = 'currency'
+list_param = {
+    type = 'list'
 }
-select_param = {
-    type = 'select'
+object_param = {
+    type = 'object'
 }
+function object_param:new(key, _o)
+    local o = {
+        key = key,
+        fields = {},
+        default = _o.default
+    }
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
 table_param = {
     type = 'table'
 }
@@ -142,10 +152,10 @@ local function parse_parameter(key, o)
             return str_param:new(key, o)
         elseif o.type == 'number' then
             return number_param:new(key, o)
-        elseif o.type == 'currency' then
-            return currency_param:new(key, o)
-        elseif o.type == 'select' then
-            return select_param:new(key, o)
+        elseif o.type == 'list' then
+            return list_param:new(key, o)
+        elseif o.type == 'object' then
+            return object_param:new(key, o)
         elseif o.type == 'table' then
             return table_param:new(key, o)
         else
@@ -159,14 +169,12 @@ end
 local function parse_column(key, o)
     if o.type then
         if key then
-            if o.type == 'string' then
+            if o.type == 'bool' then
+                return bool_param:new(key, o)
+            elseif o.type == 'string' then
                 return str_param:new(key, o)
             elseif o.type == 'number' then
                 return number_param:new(key, o)
-            elseif o.type == 'currency' then
-                return currency_param:new(key, o)
-            elseif o.type == 'select' then
-                return select_param:new(key, o)
             else
                 texio.write_nl('Warning: no such column type ' .. o.type)
             end
@@ -214,37 +222,37 @@ function api.recipe(name)
     end
     parse_recipe(load_resource(the_file))
     recipe_loaded = true
-    if not params_loaded and params_file then
+    if not payload_loaded and payload_file then
         api.params()
     end
 end
 
-function api.params(name, namespace)
+function api.payload(name, namespace)
     namespace = namespace or 'elpi'
     if not recipe_loaded then
         tex.error('Error: tried to load params before recipe. Make sure to first load the recipe.')
         return nil
     end
-    if params_loaded then
+    if payload_loaded then
         texio.write_nl('Warning: params already loaded. Skipping ' .. name)
         return nil
     end
-    local the_file = params_file or name
-    if params_file and name then
-        texio.write_nl("Warning: ignoring params file '" .. name .. "', and loading '" .. params_file .. "' instead...")
+    local the_file = payload_file or name
+    if payload_file and name then
+        texio.write_nl("Warning: ignoring params file '" .. name .. "', and loading '" .. payload_file .. "' instead...")
     end
 
     local values = load_resource(the_file)
     for key, value in pairs(values) do
         if api.parameters[namespace][key] then
             local param = api.parameters[namespace][key]
-            if param.type == 'table' then
+            if param.type == 'table' or param.type == 'list' or param.type == 'object' then
                 param.values = value
             else
                 param.value = value
             end
             if param.type == 'bool' then
-                param:print_val()
+                param:set_bool(key)
             end
         else
             texio.write_nl('Warning: passed an unknown key ' .. key)
@@ -270,6 +278,40 @@ function api.param(key, namespace)
         texio.write_nl('Writing to tex: \'' .. output .. '\'')
         tex.print(output)
     end
+end
+
+function api.field(object_key, field, namespace)
+    namespace = namespace or 'elpi'
+    local param = api.parameters[namespace][object_key]
+    local object = param.values or param.default or {}
+    -- todo: parse field
+    --if object and object.print_val then
+    --    object.
+    --end
+end
+
+function api.for_item(list_key, namespace, csname)
+    namespace = namespace or 'elpi'
+    local param = api.parameters[namespace][list_key]
+    local list = param and (param.values or param.default)
+    if #list > 0 then
+        if token.is_defined(csname) then
+            local tok = token.create(csname)
+            for _, item in ipairs(list) do
+                tex.sprint(tok, '{', item, '}')
+            end
+        else
+            tex.error('No such command ', csname or 'nil')
+        end
+    end
+end
+
+function api.for_row(csname, key, namespace)
+
+end
+
+function api.for_column(csname, key, namespace)
+
 end
 
 function api.format_rows(csname, key, namespace)
@@ -316,7 +358,7 @@ function bool_param:new(key, _o)
     return o
 end
 
-function bool_param:print_val()
+function bool_param:val()
     local value
     if self.value ~= nil then
         value = tostring(self.value)
@@ -325,7 +367,16 @@ function bool_param:print_val()
     else
         value = 'false'
     end
-    tex.sprint(setbooltok, '{', self.key, '}{', value, '}')
+    return value
+end
+
+function bool_param:print_val()
+    tex.sprint(self:val())
+end
+
+function bool_param:set_bool(key)
+    texio.write_nl('setbooktok', key, self:val() or 'nil')
+    tex.sprint(setbooltok, '{', key, '}{', self:val(), '}')
 end
 
 -- String Parameter definitions
@@ -344,7 +395,7 @@ function str_param:print_val()
     tex.write(self.value or self.placeholder or '')
 end
 
--- Integer Parameter definitions
+-- Number Parameter definitions
 
 function number_param:new(key, _o)
     local o = {
@@ -365,33 +416,11 @@ function number_param:print_val()
     end
 end
 
--- Currency Parameter definitions
-
-function currency_param:new(key, _o)
+-- List Parameter definitions
+function list_param:new(key, _o)
     local o = {
         key = key,
-        default = _o.default,
-        placeholder = _o.placeholder
-    }
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-function currency_param:print_val()
-    if self.value or self.default then
-        tex.write(tex.sp(self.value or self.default))
-    else
-        tex.write(0.00)
-    end
-end
-
--- Select Parameter definitions
-
-function select_param:new(key, _o)
-    local o = {
-        key = key,
-        options = _o.options,
+        item_type = _o["item type"],
         default = _o.default
     }
     setmetatable(o, self)
@@ -399,14 +428,20 @@ function select_param:new(key, _o)
     return o
 end
 
-function select_param:print_val()
-    if self.value or self.default then
-        tex.write(self.value or self.default)
-    else
-        tex.write(format_placeholder(self.key))
+local list_conjunction_tok = token.create('paramlist@conjunction')
+function list_param:print_val()
+    local list = self.values or self.default or {}
+    if #list > 0 then
+        tex.sprint(list[1])
+        for i = 2, #list do
+            tex.sprint(list_conjunction_tok, list[i])
+        end
     end
 end
 
+function list_param:items()
+    return self.values or self.default or {}
+end
 
 -- Table Parameter definitions
 
@@ -432,7 +467,7 @@ if recipe_file then
     api.recipe()
 end
 
-if params_file and recipe_loaded then
+if payload_file and recipe_loaded then
     api.params()
 end
 

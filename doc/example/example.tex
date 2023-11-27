@@ -12,7 +12,7 @@
     \author{\dogitauthors[\\]}
     \maketitle
 
-    \begin{minipage}{.5\linewidth}
+    \begin{minipage}[t]{.5\linewidth}
         \section*{Before values loaded}
 
         Boolean example:
@@ -23,8 +23,15 @@
 
         Number example:
         \param{number example}\\
+
+        List example:\\
+        \parbox{.7 \linewidth}{\param{list example}}\\
+        \begin{enumerate}
+            \newcommand\formatitem[1]{\item #1}
+            \forparamlist{list example}{formatitem}
+        \end{enumerate}
     \end{minipage}%
-    \begin{minipage}{.5\linewidth}
+    \begin{minipage}[t]{.5\linewidth}
         \section*{After values loaded}
         \loadpayload[example.yaml]
 
@@ -36,6 +43,19 @@
 
         Number example:
         \param{number example}\\
+
+        List example:\\
+        using \verb|\param{list example}|:\\
+        \parbox{.7 \linewidth}{\param{list example}}\\
+
+        using \verb|\forparamlist{list example}|:\\[-1em]
+        \begin{enumerate}
+            \newcommand\formatitem[1]{\item #1}
+            \forparamlist{list example}{formatitem}
+        \end{enumerate}
+
+        Object example:\\
+
     \end{minipage}
 
     \section*{Specification File}

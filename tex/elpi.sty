@@ -4,12 +4,16 @@
 \RequirePackage{ifthen}
 \RequirePackage{luapackageloader}
 
+\newcommand*\paramlist@conjunction{,~}
+
 \directlua{elpi = require('elpi')}
 
 \newcommand*\strictparams{\directlua{elpi.set_strict()}}
 \newcommand*\ifparam[3]{\ifthenelse{\boolean{#1}}{#2}{#3}}
 \newcommand*\param[1]{\directlua{elpi.param('#1')}}
+\newcommand*\paramfield[2]{\directlua{elpi.field('#1','#2')}}
+\newcommand*\forparamlist[3][elpi]{\directlua{elpi.for_item('#2', '#1', '#3')}}
 \newcommand*\fortablerow[2][formatrows]{\directlua{elpi.format_rows('#1', '#2')}}
 \newcommand*\loadrecipe[1][]{\directlua{elpi.recipe('#1')}}
-\newcommand*\loadpayload[1][]{\directlua{elpi.params('#1')}}
+\newcommand*\loadpayload[1][]{\directlua{elpi.payload('#1')}}
 
