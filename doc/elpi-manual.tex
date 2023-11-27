@@ -29,7 +29,7 @@
 }
 
 \begin{document}
-    \title{Extended \LaTeX{} Parameter Interface\thanks{This document corresponds to \texttt{doc-payload-spec} version \gitversion, written on \gitdate}}
+    \title{Extended \LaTeX{} Parameter Interface\thanks{This document corresponds to \texttt{elpi} version \gitversion, written on \gitdate}}
     \maketitle
 
     \begin{abstract}
@@ -92,8 +92,8 @@
         \showexample{16}{16-24}{7}{7-9}
         There is no support for the \cmd{\param} command.
         \DescribeMacro{\paramfield}
-        In order to show to contents there is the \cmd{\paramfield}\marg{name}\marg{field} command.
-
+        In order to show to contents there is the \cmd{\paramfield}\oarg{namespace}\marg{name}\marg{field} command.
+        However, unlike the common command \cmd{\param}, the command \cmd{\hasparam} does work with object types.
         \item[table] representing a table.
         This parameter type requires a \meta{columns} specification to be set.\\
         \showexample[20pt]{25}{25}{10}{10}

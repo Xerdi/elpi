@@ -1,0 +1,19 @@
+{
+  "bool example": true,
+  "string example": "The string",
+  "number example": 1,
+  "list example": ["First value", "Second value"],
+  "object example": {
+    "name": "Erik Nijenhuis",
+    "email": "erik@xerdi.com"
+  },
+  "table example": [
+    {
+      "description":  "Peeling tomatoes",
+      "price": 50.00
+    }, {
+      "description": "Peeling potatoes",
+      "price": 25.00
+    }
+  ]
+}

@@ -1,6 +1,5 @@
 -- Application variables
 local APPLICATION_NAME = 'Extended LaTeX Parameter Interface'
-local LUA_VERSION = string.sub(_VERSION, 5, -1)
 
 if not modules then
     modules = {}
@@ -15,7 +14,11 @@ modules['doc-payload-spec'] = {
 
 local api = {
     parameters = {},
-    strict = false
+    strict = false,
+    toks = {
+        is_set_true = token.create('has@param@true'),
+        is_set_false = token.create('has@param@false'),
+    }
 }
 local elpi = {}
 local elpi_mt = {
@@ -55,94 +58,17 @@ for _, a in ipairs(arg) do
 end
 texio.write_nl('\n')
 
--- Check if LUA_PATH is set
-local current_path = os.getenv('LUA_PATH')
-if current_path then
-    texio.write_nl('Info: LUA path setup up correctly. Great job!')
-else
-    -- Set the LUA_PATH and LUA_CPATH using 'luarocks -lua-version <LuaLaTeX version> path'
-    texio.write_nl('Warning: No LUA_PATH set. Looking for LuaRocks installation...')
-    local handle = io.popen('luarocks --lua-version ' .. LUA_VERSION .. ' path')
-    local buffer = handle:read('*a')
-    if handle:close() then
-        texio.write_nl('Info: luarocks command executed successfully')
-        local lua_path, lua_search_count = string.gsub(buffer, ".*LUA_PATH='([^']*)'.*", "%1")
-        local lua_cpath, clua_search_count = string.gsub(buffer, ".*LUA_CPATH='([^']*)'.*", "%1")
-        if lua_search_count > 0 then
-            texio.write_nl('Info: Setting LUA_PATH from LuaRocks')
-            package.path = lua_path
-        end
-        if clua_search_count > 0 then
-            texio.write_nl('Info: Setting LUA_CPATH from LuaRocks')
-            package.cpath = lua_cpath
-        end
-    else
-        texio.write_nl('Error: couldn\'t find LuaRocks installation')
-        texio.write_nl("Info: LUA PATH:\n\t" .. string.gsub(package.path, ';', '\n\t') .. '\n\n')
-    end
-end
-texio.write_nl('\n')
+require('elpi-types')
+local load_resource = require('elpi-parser')
 
-
--- Require YAML configuration files
--- Make sure to have the apt package lua-yaml installed
-local status, yaml = pcall(require, 'lyaml')
-if not status then
-    tex.error('Error: no YAML support!')
-end
 local recipe_loaded = false
 local payload_loaded = false
 
-local function load_resource(filename)
-    if yaml then
-        texio.write_nl('Info: Loading resouce: ' .. filename)
-        local file = io.open(filename, "rb")
-        if not file then
-            error('File ' .. filename .. ' doesn\'t exist...')
-        end
-        local raw = file:read "*a"
-        file:close()
-        return yaml.load(raw)
-    else
-        return {}
-    end
+local function get_param(key, namespace)
+    namespace = namespace or 'elpi'
+    local tbl = api.parameters[namespace]
+    return tbl and tbl[key]
 end
-
-local placeholder_open = '{[}'
-local placeholder_close = '{]}'
-local function format_placeholder(s)
-    return placeholder_open .. s .. placeholder_close
-end
-
--- Prototype Classes
-bool_param = {
-    type = 'bool'
-}
-str_param = {
-    type = 'string'
-}
-number_param = {
-    type = 'number'
-}
-list_param = {
-    type = 'list'
-}
-object_param = {
-    type = 'object'
-}
-function object_param:new(key, _o)
-    local o = {
-        key = key,
-        fields = {},
-        default = _o.default
-    }
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-table_param = {
-    type = 'table'
-}
 
 local function parse_parameter(key, o)
     if o.type then
@@ -163,26 +89,6 @@ local function parse_parameter(key, o)
         end
     else
         error('ERROR: parameter must have a "type" field')
-    end
-end
-
-local function parse_column(key, o)
-    if o.type then
-        if key then
-            if o.type == 'bool' then
-                return bool_param:new(key, o)
-            elseif o.type == 'string' then
-                return str_param:new(key, o)
-            elseif o.type == 'number' then
-                return number_param:new(key, o)
-            else
-                texio.write_nl('Warning: no such column type ' .. o.type)
-            end
-        else
-            error('ERROR: column must have a "key" field')
-        end
-    else
-        error('ERROR: column must have a "type" field')
     end
 end
 
@@ -237,7 +143,7 @@ function api.payload(name, namespace)
         texio.write_nl('Warning: params already loaded. Skipping ' .. name)
         return nil
     end
-    local the_file = payload_file or name
+    local the_file = name or payload_file
     if payload_file and name then
         texio.write_nl("Warning: ignoring params file '" .. name .. "', and loading '" .. payload_file .. "' instead...")
     end
@@ -265,8 +171,7 @@ function api.payload(name, namespace)
 end
 
 function api.param(key, namespace)
-    namespace = namespace or 'elpi'
-    local param = api.parameters[namespace] and api.parameters[namespace][key]
+    local param = get_param(key, namespace)
     local output
     if param then
         param:print_val()
@@ -280,9 +185,17 @@ function api.param(key, namespace)
     end
 end
 
+function api.handle_param_is_set(key, namespace)
+    local param = get_param(key, namespace)
+    if param.is_set() then
+        tex.sprint(token.create('has@param@true'))
+    else
+        tex.sprint(token.create('has@param@false'))
+    end
+end
+
 function api.field(object_key, field, namespace)
-    namespace = namespace or 'elpi'
-    local param = api.parameters[namespace][object_key]
+    local param = get_param(object_key, namespace)
     local object = param.values or param.default or {}
     -- todo: parse field
     --if object and object.print_val then
@@ -291,14 +204,17 @@ function api.field(object_key, field, namespace)
 end
 
 function api.for_item(list_key, namespace, csname)
-    namespace = namespace or 'elpi'
-    local param = api.parameters[namespace][list_key]
-    local list = param and (param.values or param.default)
+    local param = get_param(list_key, namespace)
+    local list = param:val()
     if #list > 0 then
         if token.is_defined(csname) then
             local tok = token.create(csname)
             for _, item in ipairs(list) do
-                tex.sprint(tok, '{', item, '}')
+                if param.values then
+                    tex.sprint(tok, '{', item, '}')
+                else
+                    tex.sprint(tok, '{', elpi_toks.placeholder_format, '{', item, '}}')
+                end
             end
         else
             tex.error('No such command ', csname or 'nil')
@@ -315,8 +231,7 @@ function api.for_column(csname, key, namespace)
 end
 
 function api.format_rows(csname, key, namespace)
-    namespace = namespace or 'elpi'
-    local param = api.parameters[namespace][key]
+    local param = get_param(key, namespace)
     if param then
         if param.values or api.strict then
             if #param.values > 0 then
@@ -344,131 +259,13 @@ function api.format_rows(csname, key, namespace)
     end
 end
 
--- Boolean Parameter definitions
-local newbooltok = token.create('newboolean')
-local setbooltok = token.create('setboolean')
-function bool_param:new(key, _o)
-    local o = {
-        key = key,
-        default = _o.default
-    }
-    setmetatable(o, self)
-    self.__index = self
-    tex.sprint(newbooltok, '{', o.key, '}')
-    return o
-end
-
-function bool_param:val()
-    local value
-    if self.value ~= nil then
-        value = tostring(self.value)
-    elseif self.default ~= nil then
-        value = tostring(self.default)
-    else
-        value = 'false'
-    end
-    return value
-end
-
-function bool_param:print_val()
-    tex.sprint(self:val())
-end
-
-function bool_param:set_bool(key)
-    texio.write_nl('setbooktok', key, self:val() or 'nil')
-    tex.sprint(setbooltok, '{', key, '}{', self:val(), '}')
-end
-
--- String Parameter definitions
-
-function str_param:new(key, _o)
-    local o = {
-        key = key,
-        placeholder = _o.placeholder
-    }
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-function str_param:print_val()
-    tex.write(self.value or self.placeholder or '')
-end
-
--- Number Parameter definitions
-
-function number_param:new(key, _o)
-    local o = {
-        key = key,
-        placeholder = _o.placeholder,
-        default = _o.default
-    }
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-function number_param:print_val()
-    if self.value or self.default then
-        tex.write(tex.number(self.value or self.default))
-    else
-        tex.write(self.placeholder or 0)
-    end
-end
-
--- List Parameter definitions
-function list_param:new(key, _o)
-    local o = {
-        key = key,
-        item_type = _o["item type"],
-        default = _o.default
-    }
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-local list_conjunction_tok = token.create('paramlist@conjunction')
-function list_param:print_val()
-    local list = self.values or self.default or {}
-    if #list > 0 then
-        tex.sprint(list[1])
-        for i = 2, #list do
-            tex.sprint(list_conjunction_tok, list[i])
-        end
-    end
-end
-
-function list_param:items()
-    return self.values or self.default or {}
-end
-
--- Table Parameter definitions
-
-function table_param:new(key, _o)
-    local o = {
-        key = key,
-        columns = {}
-    }
-    for _key, col in pairs(_o.columns) do
-        table.insert(o.columns, parse_column(_key, col))
-    end
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-function table_param:print_val()
-    tex.write(format_placeholder(self.key))
-end
-
 -- Load recipe and params from commandline
 if recipe_file then
     api.recipe()
 end
 
 if payload_file and recipe_loaded then
-    api.params()
+    api.payload()
 end
 
 return elpi

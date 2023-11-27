@@ -2,61 +2,122 @@
 \usepackage{gitinfo-lua}
 \usepackage{elpi}
 \usepackage{listings}
+\usepackage{amsmath}
+\usepackage{calc}
 
 \loadrecipe[example-specification.yaml]
 
 \setlength{\parindent}{0pt}
+
+\makeatletter
+\reversemarginpar
+\@mparswitchfalse
+\makeatother
+
+\def\boolexample{
+    Boolean example:\\
+
+    \lstinline|\param{bool example}|
+    $\implies$
+    \param{bool example}\\
+
+    \lstinline|\ifparam{bool example}{TRUE}{FALSE}|
+    $\implies$
+    \ifparam{bool example}{TRUE}{FALSE}\\
+}
 
 \begin{document}
     \title{ELPI Example\thanks{This example corresponds to \texttt{elpi} version \gitversion{} written on \gitdate.}}
     \author{\dogitauthors[\\]}
     \maketitle
 
-    \begin{minipage}[t]{.5\linewidth}
+%    \begin{minipage}[t]{.5 \linewidth - .5 \columnsep}
         \section*{Before values loaded}
 
-        Boolean example:
+        Boolean example:\\
+
+        \lstinline|\param{bool example}|
+        $\implies$
+        \param{bool example}\\
+
+        \lstinline[style=TeX,morekeywords={ifparam}]|\ifparam{bool example}{TRUE}{FALSE}|
+        $\implies$
         \ifparam{bool example}{TRUE}{FALSE}\\
 
-        String example:
-        \param{string example}\\
+        String example:\\
 
-        Number example:
+        \lstinline|\param{string example}|
+        $\implies$
+        ``\param{string example}''\\
+
+        Number example:\\
+
+        \lstinline|\param{number example}|
+        $\implies$
         \param{number example}\\
 
         List example:\\
-        \parbox{.7 \linewidth}{\param{list example}}\\
+
+        \lstinline|\param{list example}|
+        $\implies$
+        \param{list example}\\
+
+        \begin{lstlisting}[language={[LaTeX]TeX},morekeywords={formatitem,forparamlist}]
+\begin{enumerate}
+    \newcommand\formatitem[1]{\item #1}
+    \forparamlist{list example}{formatitem}
+\end{enumerate}
+        \end{lstlisting}
+        $\implies$
         \begin{enumerate}
             \newcommand\formatitem[1]{\item #1}
             \forparamlist{list example}{formatitem}
         \end{enumerate}
-    \end{minipage}%
-    \begin{minipage}[t]{.5\linewidth}
+%    \end{minipage}\hspace{\columnsep}%
+%    \begin{minipage}[t]{.5\linewidth - .5 \columnsep}
         \section*{After values loaded}
-        \loadpayload[example.yaml]
+        \loadpayload[example.json]
 
-        Boolean example:
+        Boolean example:\\
+
+        \lstinline|\param{bool example}|
+        $\implies$
+        \param{bool example}\\
+
+        \lstinline|\ifparam{bool example}{TRUE}{FALSE}|
+        $\implies$
         \ifparam{bool example}{TRUE}{FALSE}\\
 
-        String example:
-        \param{string example}\\
+        String example:\\
 
-        Number example:
+        \lstinline|\param{string example}|
+        $\implies$
+        ``\param{string example}''\\
+
+        Number example:\\
+
+        \lstinline|\param{number example}|
+        $\implies$
         \param{number example}\\
 
         List example:\\
-        using \verb|\param{list example}|:\\
-        \parbox{.7 \linewidth}{\param{list example}}\\
 
-        using \verb|\forparamlist{list example}|:\\[-1em]
+        \lstinline|\param{list example}|
+        $\implies$
+        \param{list example}\\
+
+        \begin{lstlisting}[language={[LaTeX]TeX},morekeywords={formatitem,forparamlist}]
+\begin{enumerate}
+    \newcommand\formatitem[1]{\item #1}
+    \forparamlist{list example}{formatitem}
+\end{enumerate}
+        \end{lstlisting}
+        $\implies$
         \begin{enumerate}
             \newcommand\formatitem[1]{\item #1}
             \forparamlist{list example}{formatitem}
         \end{enumerate}
-
-        Object example:\\
-
-    \end{minipage}
+%    \end{minipage}
 
     \section*{Specification File}
     \lstinputlisting[language=YAML,numbers=left,xleftmargin=15pt,caption={example-specification.yaml}]{example-specification.yaml}
@@ -64,4 +125,7 @@
 
     \section*{Payload File}
     \lstinputlisting[language=YAML,numbers=left,xleftmargin={15pt},caption={example.yaml}]{example.yaml}
+
+    \section*{Fallback Payload}
+    \lstinputlisting[language=JSON,numbers=left,xleftmargin={15pt},caption={example.json}]{example.json}
 \end{document}
