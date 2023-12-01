@@ -1,12 +1,14 @@
-elpi_toks = {
-    new_bool = token.create('newboolean'),
-    set_bool = token.create('setboolean'),
-    list_conj = token.create('paramlistconjunction'),
-    placeholder_format = token.create('paramplaceholder'),
-    unknown_format = token.create('paramnotfound')
-}
+require('elpi-common')
 
-local base_param = {}
+function table.copy(t)
+    local u = { }
+    for k, v in pairs(t) do
+        u[k] = v
+    end
+    return setmetatable(u, getmetatable(t))
+end
+
+base_param = {}
 function base_param:new(o)
     o = o or {}
     setmetatable(o, self)
@@ -104,9 +106,14 @@ list_param = base_param:new{
 function list_param:new(key, _o)
     local o = {
         key = key,
-        item_type = _o["item type"],
-        default = _o.default
+        item_type = base_param.define('list_item', { type = (_o["item type"] or 'string') }),
+        default = {}
     }
+    for _, default_val in ipairs(_o.default) do
+        local v = table.copy(o.item_type)
+        v:load('list_item', default_val)
+        table.insert(o.default, v)
+    end
     setmetatable(o, self)
     self.__index = self
     return o
@@ -122,9 +129,10 @@ function list_param:print_val()
         if not self.values then
             tex.sprint(elpi_toks.placeholder_format, '{')
         end
-        tex.sprint(list[1])
+        tex.sprint(list[1]:val())
         for i = 2, #list do
-            tex.sprint(elpi_toks.list_conj, list[i])
+            print('info', list[i].type, list[i].value)
+            tex.sprint(elpi_toks.list_conj, list[i]:val())
         end
         if not self.values then
             tex.sprint('}')
@@ -136,26 +144,6 @@ object_param = base_param:new{
     type = 'object'
 }
 
-local function parse_field(key, o)
-    if o.type then
-        if key then
-            if o.type == 'bool' then
-                return bool_param:new(key, o)
-            elseif o.type == 'string' then
-                return str_param:new(key, o)
-            elseif o.type == 'number' then
-                return number_param:new(key, o)
-            else
-                texio.write_nl('Warning: no such column type ' .. o.type)
-            end
-        else
-            error('ERROR: column must have a "key" field')
-        end
-    else
-        error('ERROR: column must have a "type" field')
-    end
-end
-
 function object_param:new(key, _o)
     local o = {
         key = key,
@@ -163,7 +151,7 @@ function object_param:new(key, _o)
         default = _o.default
     }
     for _key, field in pairs(_o.fields) do
-        o.fields[_key] = parse_field(_key, field)
+        o.fields[_key] = base_param.define(_key, field)
     end
     setmetatable(o, self)
     self.__index = self
@@ -174,35 +162,73 @@ table_param = base_param:new{
     type = 'table'
 }
 
-local function parse_column(key, o)
-    if o.type then
-        if key then
-            if o.type == 'bool' then
-                return bool_param:new(key, o)
-            elseif o.type == 'string' then
-                return str_param:new(key, o)
-            elseif o.type == 'number' then
-                return number_param:new(key, o)
-            else
-                texio.write_nl('Warning: no such column type ' .. o.type)
-            end
-        else
-            error('ERROR: column must have a "key" field')
-        end
-    else
-        error('ERROR: column must have a "type" field')
-    end
-end
-
 function table_param:new(key, _o)
     local o = {
         key = key,
         columns = {}
     }
     for _, col in ipairs(_o.columns) do
-        table.insert(o.columns, parse_column(col.key, col))
+        table.insert(o.columns, base_param.define(col.key, col))
     end
     setmetatable(o, self)
     self.__index = self
     return o
+end
+
+function base_param.define(key, o)
+    if o.type then
+        if o.type == 'bool' then
+            return bool_param:new(key, o)
+        elseif o.type == 'string' then
+            return str_param:new(key, o)
+        elseif o.type == 'number' then
+            return number_param:new(key, o)
+        elseif o.type == 'list' then
+            return list_param:new(key, o)
+        elseif o.type == 'object' then
+            return object_param:new(key, o)
+        elseif o.type == 'table' then
+            return table_param:new(key, o)
+        else
+            texio.write_nl('Warning: no such parameter type ' .. o.type)
+        end
+    else
+        error('ERROR: parameter must have a "type" field')
+    end
+end
+
+function base_param:load(key, value)
+    if self.type == 'list' then
+        self.values = {}
+        for _, val in ipairs(value) do
+            local param = table.copy(self.item_type)
+            param:load('list-item', val)
+            table.insert(self.values, param)
+        end
+    elseif self.type == 'table' then
+        self.values = {}
+        for _, row_vals in ipairs(value) do
+            local row = {}
+            for _, col in ipairs(self.columns) do
+                local cell = table.copy(col)
+                cell:load(col.key, row_vals[col.key])
+                table.insert(row, cell)
+            end
+            table.insert(self.values, row)
+        end
+    elseif self.type == 'object' then
+        for field_key, field in pairs(self.fields) do
+            local field_val = value[field_key]
+            if field_val then
+                field:load(field_key, field_val)
+            else
+                texio.write_nl('Warning: Passed unknown field to object', field_key)
+            end
+        end
+    else
+        self.value = value
+    end
+    if self.type == 'bool' then
+        self:set_bool(key)
+    end
 end

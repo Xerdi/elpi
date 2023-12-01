@@ -71,25 +71,7 @@ local function get_param(key, namespace)
 end
 
 local function parse_parameter(key, o)
-    if o.type then
-        if o.type == 'bool' then
-            return bool_param:new(key, o)
-        elseif o.type == 'string' then
-            return str_param:new(key, o)
-        elseif o.type == 'number' then
-            return number_param:new(key, o)
-        elseif o.type == 'list' then
-            return list_param:new(key, o)
-        elseif o.type == 'object' then
-            return object_param:new(key, o)
-        elseif o.type == 'table' then
-            return table_param:new(key, o)
-        else
-            texio.write_nl('Warning: no such parameter type ' .. o.type)
-        end
-    else
-        error('ERROR: parameter must have a "type" field')
-    end
+    return base_param.define(key, o)
 end
 
 local function parse_recipe_parameters(params, namespace)
@@ -133,14 +115,6 @@ function api.recipe(name)
     end
 end
 
-function table.copy(t)
-    local u = { }
-    for k, v in pairs(t) do
-        u[k] = v
-    end
-    return setmetatable(u, getmetatable(t))
-end
-
 function api.payload(name, namespace)
     namespace = namespace or tex.jobname
     if not recipe_loaded then
@@ -160,38 +134,11 @@ function api.payload(name, namespace)
     for key, value in pairs(values) do
         if api.parameters[namespace][key] then
             local param = api.parameters[namespace][key]
-            if param.type == 'list' then
-                param.values = value
-            elseif param.type == 'table' then
-                param.values = {}
-                for _, row_vals in ipairs(value) do
-                    local row = {}
-                    for _, col in ipairs(param.columns) do
-                        local copy = table.copy(col)
-                        copy.value = row_vals[col.key]
-                        table.insert(row, copy)
-                    end
-                    table.insert(param.values, row)
-                end
-            elseif param.type == 'object' then
-                for field_key, field in pairs(param.fields) do
-                    local field_val = value[field_key]
-                    if field_val then
-                        field.value = field_val
-                    else
-                        texio.write_nl('Warning: Passed unknown field to object', field_key)
-                    end
-                end
-            else
-                param.value = value
-            end
-            if param.type == 'bool' then
-                param:set_bool(key)
-            end
+            param:load(key, value)
         else
             texio.write_nl('Warning: passed an unknown key ' .. key)
         end
-        texio.write_nl('Key ' .. key)
+        texio.write_nl('Key' .. key)
     end
 
     texio.write_nl('Info: Enabled strict mode!')
@@ -252,9 +199,9 @@ function api.for_item(list_key, namespace, csname)
             local tok = token.create(csname)
             for _, item in ipairs(list) do
                 if param.values then
-                    tex.sprint(tok, '{', item, '}')
+                    tex.sprint(tok, '{', item:val(), '}')
                 else
-                    tex.sprint(tok, '{', elpi_toks.placeholder_format, '{', item, '}}')
+                    tex.sprint(tok, '{', elpi_toks.placeholder_format, '{', item:val(), '}}')
                 end
             end
         else
@@ -282,8 +229,7 @@ function api.with_rows(key, namespace, csname)
                 if #param.columns > 0 then
                     tex.sprint(tok)
                     for _, col in ipairs(param.columns) do
-                        local val = '\\paramplaceholder{' .. (col.placeholder or col.key) .. '}'
-                        tex.sprint('{', val, '}')
+                        tex.sprint('{\\paramplaceholder{', (col.placeholder or col.key), '}}')
                     end
                 end
             else
