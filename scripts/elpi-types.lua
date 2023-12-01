@@ -1,13 +1,10 @@
 elpi_toks = {
     new_bool = token.create('newboolean'),
     set_bool = token.create('setboolean'),
-    list_conj = token.create('paramlist@conjunction'),
-    placeholder_format = token.create('param@placeholder')
+    list_conj = token.create('paramlistconjunction'),
+    placeholder_format = token.create('paramplaceholder'),
+    unknown_format = token.create('paramnotfound')
 }
-
-local function print_placeholder(text)
-    tex.sprint(elpi_toks.placeholder_format, '{', text, '}')
-end
 
 local base_param = {}
 function base_param:new(o)
@@ -18,7 +15,7 @@ function base_param:new(o)
 end
 
 function base_param:is_set()
-    return self and ((self.values or self.value) ~= nil)
+    return self and ((self.values or self.fields or self.value) ~= nil)
 end
 
 function base_param:val()
@@ -139,12 +136,35 @@ object_param = base_param:new{
     type = 'object'
 }
 
+local function parse_field(key, o)
+    if o.type then
+        if key then
+            if o.type == 'bool' then
+                return bool_param:new(key, o)
+            elseif o.type == 'string' then
+                return str_param:new(key, o)
+            elseif o.type == 'number' then
+                return number_param:new(key, o)
+            else
+                texio.write_nl('Warning: no such column type ' .. o.type)
+            end
+        else
+            error('ERROR: column must have a "key" field')
+        end
+    else
+        error('ERROR: column must have a "type" field')
+    end
+end
+
 function object_param:new(key, _o)
     local o = {
         key = key,
         fields = {},
         default = _o.default
     }
+    for _key, field in pairs(_o.fields) do
+        o.fields[_key] = parse_field(_key, field)
+    end
     setmetatable(o, self)
     self.__index = self
     return o
@@ -179,8 +199,8 @@ function table_param:new(key, _o)
         key = key,
         columns = {}
     }
-    for _key, col in pairs(_o.columns) do
-        table.insert(o.columns, parse_column(_key, col))
+    for _, col in ipairs(_o.columns) do
+        table.insert(o.columns, parse_column(col.key, col))
     end
     setmetatable(o, self)
     self.__index = self

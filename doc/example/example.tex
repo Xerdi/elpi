@@ -14,110 +14,185 @@
 \@mparswitchfalse
 \makeatother
 
-\def\boolexample{
-    Boolean example:\\
-
-    \lstinline|\param{bool example}|
-    $\implies$
-    \param{bool example}\\
-
-    \lstinline|\ifparam{bool example}{TRUE}{FALSE}|
-    $\implies$
-    \ifparam{bool example}{TRUE}{FALSE}\\
-}
-
 \begin{document}
     \title{ELPI Example\thanks{This example corresponds to \texttt{elpi} version \gitversion{} written on \gitdate.}}
     \author{\dogitauthors[\\]}
     \maketitle
 
-%    \begin{minipage}[t]{.5 \linewidth - .5 \columnsep}
-        \section*{Before values loaded}
+    \section*{Basics}
+    Wrong parameter:\\
 
-        Boolean example:\\
+    \lstinline[style=TeX,morekeywords={param}]|\param{non existing}|
+    $\implies$
+    \param{non existing}\\
 
-        \lstinline|\param{bool example}|
-        $\implies$
-        \param{bool example}\\
+    Conditional Parameter:\\
 
-        \lstinline[style=TeX,morekeywords={ifparam}]|\ifparam{bool example}{TRUE}{FALSE}|
-        $\implies$
-        \ifparam{bool example}{TRUE}{FALSE}\\
+    \lstinline[style=TeX,morekeywords={hasparam}]|\hasparam{list example}{is set}{is not set}|
+    $\implies$
+    \hasparam{list example}{is set}{is not set}
 
-        String example:\\
+    \section*{Before values loaded}
 
-        \lstinline|\param{string example}|
-        $\implies$
-        ``\param{string example}''\\
+    Boolean example:\\
 
-        Number example:\\
+    \lstinline[style=TeX,morekeywords={param}]|\param{bool example}|
+    $\implies$
+    \param{bool example}\\
 
-        \lstinline|\param{number example}|
-        $\implies$
-        \param{number example}\\
+    \lstinline[style=TeX,morekeywords={ifparam}]|\ifparam{bool example}{TRUE}{FALSE}|
+    $\implies$
+    \ifparam{bool example}{TRUE}{FALSE}\\
 
-        List example:\\
+    String example:\\
 
-        \lstinline|\param{list example}|
-        $\implies$
-        \param{list example}\\
+    \lstinline[style=TeX,morekeywords={param}]|\param{string example}|
+    $\implies$
+    ``\param{string example}''\\
 
-        \begin{lstlisting}[language={[LaTeX]TeX},morekeywords={formatitem,forparamlist}]
+    Number example:\\
+
+    \lstinline[style=TeX,morekeywords={param}]|\param{number example}|
+    $\implies$
+    \param{number example}\\
+
+    List example:\\
+
+    \lstinline[style=TeX,morekeywords={param}]|\param{list example}|
+    $\implies$
+    \param{list example}\\
+
+    \begin{lstlisting}[language={[LaTeX]TeX},morekeywords={formatitem,forlistitem}]
 \begin{enumerate}
     \newcommand\formatitem[1]{\item #1}
-    \forparamlist{list example}{formatitem}
+    \forlistitem{list example}{formatitem}
 \end{enumerate}
-        \end{lstlisting}
-        $\implies$
-        \begin{enumerate}
-            \newcommand\formatitem[1]{\item #1}
-            \forparamlist{list example}{formatitem}
-        \end{enumerate}
-%    \end{minipage}\hspace{\columnsep}%
-%    \begin{minipage}[t]{.5\linewidth - .5 \columnsep}
-        \section*{After values loaded}
-        \loadpayload[example.json]
+    \end{lstlisting}
+    $\implies$
+    \begin{enumerate}
+        \newcommand\formatitem[1]{\item #1}
+        \forlistitem{list example}{formatitem}
+    \end{enumerate}
 
-        Boolean example:\\
+    Object example:\\
 
-        \lstinline|\param{bool example}|
-        $\implies$
-        \param{bool example}\\
+    \lstinline[style=TeX,morekeywords={paramfield}]|\paramfield{object example}{name}|\\
+    \lstinline[style=TeX,morekeywords={paramfield}]|\paramfield{object example}{email}|\\
+    $\implies$
+    \paramfield{object example}{name}
+    \paramfield{object example}{email}\\
 
-        \lstinline|\ifparam{bool example}{TRUE}{FALSE}|
-        $\implies$
-        \ifparam{bool example}{TRUE}{FALSE}\\
+    \begin{lstlisting}[style=TeX,morekeywords={name,email}]
+\newcommand\name{This will get overriden}
+\begin{paramobject}{object example}
+    \name{} \email{}
+\end{paramobject}
+% And here it works again
+\name{}
+    \end{lstlisting}
+    $\implies$
+    \newcommand\name{This will get overriden}%
+    \begin{paramobject}{object example}
+        \name{} \email{}
+    \end{paramobject}
+    \name{}\\
 
-        String example:\\
+    Table example:\\
 
-        \lstinline|\param{string example}|
-        $\implies$
-        ``\param{string example}''\\
+    \begin{lstlisting}[style=TeX,morekeywords={formatrow,fortablerow}]
+\begin{tabular}{l | l}
+    \textbf{Description} & \textbf{Price} \\ \hline
+    \newcommand\formatrow[2]{#1 & #2 \\}%
+    \fortablerow{table example}{formatrow}
+\end{tabular}
+    \end{lstlisting}
+    $\implies$
+    \newcommand\formatrow[2]{#1 & #2 \\}%
+    \begin{tabular}{l | l}
+        \textbf{Description} & \textbf{Price} \\ \hline
+        \fortablerow{table example}{formatrow}
+    \end{tabular}
 
-        Number example:\\
 
-        \lstinline|\param{number example}|
-        $\implies$
-        \param{number example}\\
+    \section*{After values loaded}
+    \loadpayload[example.json]
 
-        List example:\\
+    Boolean example:\\
 
-        \lstinline|\param{list example}|
-        $\implies$
-        \param{list example}\\
+    \lstinline[style=TeX,morekeywords={param}]|\param{bool example}|
+    $\implies$
+    \param{bool example}\\
 
-        \begin{lstlisting}[language={[LaTeX]TeX},morekeywords={formatitem,forparamlist}]
+    \lstinline[style=TeX,morekeywords={ifparam}]|\ifparam{bool example}{TRUE}{FALSE}|
+    $\implies$
+    \ifparam{bool example}{TRUE}{FALSE}\\
+
+    String example:\\
+
+    \lstinline[style=TeX,morekeywords={param}]|\param{string example}|
+    $\implies$
+    ``\param{string example}''\\
+
+    Number example:\\
+
+    \lstinline[style=TeX,morekeywords={param}]|\param{number example}|
+    $\implies$
+    \param{number example}\\
+
+    List example:\\
+
+    \lstinline[style=TeX,morekeywords={param}]|\param{list example}|
+    $\implies$
+    \param{list example}\\
+
+    \begin{lstlisting}[language={[LaTeX]TeX},morekeywords={formatitem,forlistitem}]
 \begin{enumerate}
     \newcommand\formatitem[1]{\item #1}
-    \forparamlist{list example}{formatitem}
+    \forlistitem{list example}{formatitem}
 \end{enumerate}
-        \end{lstlisting}
-        $\implies$
-        \begin{enumerate}
-            \newcommand\formatitem[1]{\item #1}
-            \forparamlist{list example}{formatitem}
-        \end{enumerate}
-%    \end{minipage}
+    \end{lstlisting}
+    $\implies$
+    \begin{enumerate}
+        \newcommand\formatitem[1]{\item #1}
+        \forlistitem{list example}{formatitem}
+    \end{enumerate}
+
+    Object example:\\
+
+    \lstinline[style=TeX,morekeywords={paramfield}]|\paramfield{object example}{name}|\\
+    \lstinline[style=TeX,morekeywords={paramfield}]|\paramfield{object example}{email}|\\
+    $\implies$
+    \paramfield{object example}{name}
+    \paramfield{object example}{email}\\
+
+    \begin{lstlisting}[style=TeX,morekeywords={name,email}]
+\newcommand\name{This will get overriden}
+\begin{paramobject}{object example}
+    \name{} \email{}
+\end{paramobject}
+% And here it works again
+\name{}
+    \end{lstlisting}
+    $\implies$
+    \begin{paramobject}{object example}
+        \name{} \email{}
+    \end{paramobject}
+    \name{}\\
+
+    Table example:\\
+
+    \begin{lstlisting}[style=TeX,morekeywords={formatrow,fortablerow}]
+\begin{tabular}{l | l}
+    \textbf{Description} & \textbf{Price} \\ \hline
+    \newcommand\formatrow[2]{#1 & #2 \\}%
+    \fortablerow{table example}{formatrow}
+\end{tabular}
+    \end{lstlisting}
+    $\implies$
+    \begin{tabular}{l | l}
+        \textbf{Description} & \textbf{Price} \\ \hline
+        \fortablerow{table example}{formatrow}
+    \end{tabular}
 
     \section*{Specification File}
     \lstinputlisting[language=YAML,numbers=left,xleftmargin=15pt,caption={example-specification.yaml}]{example-specification.yaml}

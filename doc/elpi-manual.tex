@@ -78,12 +78,12 @@
         However, a placeholder can be simulated by setting the placeholders as children of the \meta{default} list, as demonstrated in the example.\\
         \showexample{10}{10-15}{4}{4-6}
         \DescribeMacro{\param}
-        Command \cmd{\param} concatenates every item with command \cmd{\paramlist@conjunction}.
-        \DescribeMacro{\paramlist@conjunction}
+        Command \cmd{\param} concatenates every item with command \cmd{\paramlistconjunction}.
+        \DescribeMacro{\paramlistconjunction}
         By default, the conjunction is set to `\texttt{,\textasciitilde}'.
 
-        \DescribeMacro{\forparamlist}
-        There's also the \cmd{\forparamlist}\oarg{namespace}\marg{name}\marg{csname} command, which takes an additional \meta{csname} and will execute it for every item in the list.
+        \DescribeMacro{\forlistitem}
+        There's also the \cmd{\forlistitem}\oarg{namespace}\marg{name}\marg{csname} command, which takes an additional \meta{csname} and will execute it for every item in the list.
         This command doesn't handle advanced features like altering the conjunction.
         Though, some utility commands will be set, which are only available in the \meta{csname}s implementation, in order to achieve the same goal.
         \item[object] representing a list of key value pairs.

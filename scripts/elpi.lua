@@ -65,7 +65,7 @@ local recipe_loaded = false
 local payload_loaded = false
 
 local function get_param(key, namespace)
-    namespace = namespace or 'elpi'
+    namespace = namespace or tex.jobname
     local tbl = api.parameters[namespace]
     return tbl and tbl[key]
 end
@@ -105,7 +105,7 @@ local function parse_recipe_parameters(params, namespace)
 end
 
 local function parse_recipe(raw_recipe, namespace)
-    namespace = namespace or raw_recipe.namespace or 'elpi'
+    namespace = namespace or raw_recipe.namespace or tex.jobname
     if raw_recipe.parameters then
         parse_recipe_parameters(raw_recipe.parameters, namespace)
     else
@@ -133,8 +133,16 @@ function api.recipe(name)
     end
 end
 
+function table.copy(t)
+    local u = { }
+    for k, v in pairs(t) do
+        u[k] = v
+    end
+    return setmetatable(u, getmetatable(t))
+end
+
 function api.payload(name, namespace)
-    namespace = namespace or 'elpi'
+    namespace = namespace or tex.jobname
     if not recipe_loaded then
         tex.error('Error: tried to load params before recipe. Make sure to first load the recipe.')
         return nil
@@ -152,8 +160,28 @@ function api.payload(name, namespace)
     for key, value in pairs(values) do
         if api.parameters[namespace][key] then
             local param = api.parameters[namespace][key]
-            if param.type == 'table' or param.type == 'list' or param.type == 'object' then
+            if param.type == 'list' then
                 param.values = value
+            elseif param.type == 'table' then
+                param.values = {}
+                for _, row_vals in ipairs(value) do
+                    local row = {}
+                    for _, col in ipairs(param.columns) do
+                        local copy = table.copy(col)
+                        copy.value = row_vals[col.key]
+                        table.insert(row, copy)
+                    end
+                    table.insert(param.values, row)
+                end
+            elseif param.type == 'object' then
+                for field_key, field in pairs(param.fields) do
+                    local field_val = value[field_key]
+                    if field_val then
+                        field.value = field_val
+                    else
+                        texio.write_nl('Warning: Passed unknown field to object', field_key)
+                    end
+                end
             else
                 param.value = value
             end
@@ -176,12 +204,7 @@ function api.param(key, namespace)
     if param then
         param:print_val()
     else
-        output = '\\textbf{' .. placeholder_open .. '{\\normalfont <unknown>} ' .. key .. placeholder_close .. '}'
-        texio.write_nl('Warning: no parameter found by key "' .. key .. '"')
-    end
-    if output then
-        texio.write_nl('Writing to tex: \'' .. output .. '\'')
-        tex.print(output)
+        tex.sprint(elpi_toks.unknown_format, '{', key, '}')
     end
 end
 
@@ -196,11 +219,29 @@ end
 
 function api.field(object_key, field, namespace)
     local param = get_param(object_key, namespace)
-    local object = param.values or param.default or {}
-    -- todo: parse field
-    --if object and object.print_val then
-    --    object.
-    --end
+    if param then
+        local object = param.fields or param.default or {}
+        local f = object[field]
+        if f then
+            f:print_val()
+        else
+            tex.sprint(elpi_toks.unknown_format, '{', field, '}')
+        end
+    else
+        tex.error('No such object', object_key)
+    end
+end
+
+function api.with_object(object_key, namespace)
+    local object = get_param(object_key, namespace)
+    for key, param in pairs(object.fields) do
+        local val = param:val()
+        if val then
+            token.set_macro(key, param:val())
+        else
+            token.set_macro(key, '\\paramplaceholder{' .. (param.placeholder or key) .. '}')
+        end
+    end
 end
 
 function api.for_item(list_key, namespace, csname)
@@ -222,40 +263,37 @@ function api.for_item(list_key, namespace, csname)
     end
 end
 
-function api.for_row(csname, key, namespace)
-
-end
-
-function api.for_column(csname, key, namespace)
-
-end
-
-function api.format_rows(csname, key, namespace)
+function api.with_rows(key, namespace, csname)
     local param = get_param(key, namespace)
-    if param then
-        if param.values or api.strict then
-            if #param.values > 0 then
-                texio.write_nl('Writing table ' .. key)
-                for _, row in ipairs(param.values) do
-                    tex.sprint('\\' .. csname)
-                    for __, column in pairs(param.columns) do
-                        tex.sprint('{' .. row[column.key] .. '}')
+    if token.is_defined(csname) then
+        local tok = token.create(csname)
+        if param then
+            if param.values or api.strict then
+                if #param.values > 0 then
+                    for _, row in ipairs(param.values) do
+                        tex.sprint(tok)
+                        for _, cell in ipairs(row) do
+                            tex.sprint('{', cell:val(), '}')
+                        end
                     end
                 end
-            end
-        elseif param.columns then
-            texio.write_nl("Warning: no values set for " .. param.key)
-            if #param.columns > 0 then
-                tex.sprint('\\' .. csname)
-                for _, col in ipairs(param.columns) do
-                    tex.sprint('{' .. (col.value or col.default or col.placeholder or '') .. '}')
+            elseif param.columns then
+                texio.write_nl("Warning: no values set for " .. param.key)
+                if #param.columns > 0 then
+                    tex.sprint(tok)
+                    for _, col in ipairs(param.columns) do
+                        local val = '\\paramplaceholder{' .. (col.placeholder or col.key) .. '}'
+                        tex.sprint('{', val, '}')
+                    end
                 end
+            else
+                error('No values either columns available')
             end
         else
-            error('No values either columns available')
+            error('Error: no such parameter')
         end
     else
-        error('ERROR: no such parameter')
+        error('Error: no such command', csname)
     end
 end
 
