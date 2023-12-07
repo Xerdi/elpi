@@ -83,7 +83,7 @@
     \paramfield{object example}{email}\\
 
     \begin{lstlisting}[style=TeX,morekeywords={name,email}]
-\newcommand\name{This will get overriden}
+\newcommand\name{...}
 \begin{paramobject}{object example}
     \name{} \email{}
 \end{paramobject}
@@ -91,11 +91,13 @@
 \name{}
     \end{lstlisting}
     $\implies$
-    \newcommand\name{This will get overriden}%
+    \newcommand\name{...}%
+    \parbox{\linewidth}{
     \begin{paramobject}{object example}
         \name{} \email{}
     \end{paramobject}
-    \name{}\\
+    \name{}
+    }\\
 
     Table example:\\
 
@@ -115,7 +117,7 @@
 
 
     \section*{After values loaded}
-    \loadpayload[example.json]
+    \loadpayload[example.yaml]
 
     Boolean example:\\
 
@@ -166,7 +168,7 @@
     \paramfield{object example}{email}\\
 
     \begin{lstlisting}[style=TeX,morekeywords={name,email}]
-\newcommand\name{This will get overriden}
+\newcommand\name{...}
 \begin{paramobject}{object example}
     \name{} \email{}
 \end{paramobject}
@@ -174,10 +176,12 @@
 \name{}
     \end{lstlisting}
     $\implies$
+    \parbox{\linewidth}{
     \begin{paramobject}{object example}
         \name{} \email{}
     \end{paramobject}
-    \name{}\\
+    \name{}
+    }\\
 
     Table example:\\
 
@@ -197,6 +201,7 @@
     \section*{Specification File}
     \lstinputlisting[language=YAML,numbers=left,xleftmargin=15pt,caption={example-specification.yaml}]{example-specification.yaml}
 
+    \clearpage
 
     \section*{Payload File}
     \lstinputlisting[language=YAML,numbers=left,xleftmargin={15pt},caption={example.yaml}]{example.yaml}

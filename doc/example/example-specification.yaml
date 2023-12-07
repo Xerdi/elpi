@@ -3,7 +3,7 @@ bool example:
   default: false
 string example:
   type: string
-  placeholder: Type in a string
+  placeholder: A string
 number example:
   type: number
   default: -1
@@ -11,23 +11,23 @@ list example:
   type: list
   item type: string
   default:
-    - Type in a string
-    - Type in a second string
+    - A string
+    - A second string
 object example:
   type: object
   fields:
     name:
       type: string
-      placeholder: Type in your name
+      placeholder: Your name
     email:
       type: string
-      placeholder: Type in your email
+      placeholder: Your email
 table example:
   type: table
   columns:
     - key: description
       type: string
-      placeholder: Type in the work description
+      placeholder: The description
     - key: price
       type: number
-      placeholder: Type in the price
+      placeholder: The price

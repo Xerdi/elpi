@@ -1,11 +1,11 @@
 {
   "bool example": true,
-  "string example": "The string",
+  "string example": "PeelInc.",
   "number example": 1,
-  "list example": ["First value", "Second value"],
+  "list example": ["Tomatoes", "Potatoes"],
   "object example": {
-    "name": "Erik Nijenhuis",
-    "email": "erik@xerdi.com"
+    "name": "John Doe",
+    "email": "j.doe@example.com"
   },
   "table example": [
     {
