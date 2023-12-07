@@ -213,12 +213,7 @@ end
 function api.with_rows(key, namespace, csname)
     local param = get_param(key, namespace)
     if token.is_defined(csname) then
-        local tok = token.create(csname)
         local row_content = token.get_macro(csname)
-        print('ROW CONTENT', row_content)
-        for col_csname in string.gmatch(row_content, '\\(%w*)') do
-            print('COL', col_csname)
-        end
         if param then
             if param.values or api.strict then
                 if #param.values > 0 then
@@ -235,10 +230,8 @@ function api.with_rows(key, namespace, csname)
                 local format = row_content
                 for col_key, col in pairs(param.columns) do
                     format = format:gsub('\\' .. col_key, '{\\paramplaceholder{' .. (col.placeholder or col_key) .. '}}')
-                    --token.set_macro(col_key, '{\\paramplaceholder{' .. (col.placeholder or col_key) .. '}}', 'global')
                 end
                 tex.print(format)
-                --tex.sprint(tok, '\\\\')
             else
                 tex.error('No values either columns available')
             end
