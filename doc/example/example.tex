@@ -85,31 +85,31 @@
     \begin{lstlisting}[style=TeX,morekeywords={name,email}]
 \newcommand\name{...}
 \begin{paramobject}{object example}
-    \name{} \email{}
+    \name\ \email
 \end{paramobject}
 % And here it works again
-\name{}
+\name
     \end{lstlisting}
     $\implies$
     \newcommand\name{...}%
     \parbox{\linewidth}{
     \begin{paramobject}{object example}
-        \name{} \email{}
+        \name\ \email
     \end{paramobject}
-    \name{}
+    \name
     }\\
 
     Table example:\\
 
-    \begin{lstlisting}[style=TeX,morekeywords={formatrow,fortablerow}]
+    \begin{lstlisting}[style=TeX,morekeywords={formatrow,fortablerow,description,price}]
+\newcommand\formatrow{\description & \price \\}%
 \begin{tabular}{l | l}
     \textbf{Description} & \textbf{Price} \\ \hline
-    \newcommand\formatrow[2]{#1 & #2 \\}%
     \fortablerow{table example}{formatrow}
 \end{tabular}
     \end{lstlisting}
     $\implies$
-    \newcommand\formatrow[2]{#1 & #2 \\}%
+    \newcommand\formatrow{\description & \price \\}%
     \begin{tabular}{l | l}
         \textbf{Description} & \textbf{Price} \\ \hline
         \fortablerow{table example}{formatrow}
@@ -170,25 +170,25 @@
     \begin{lstlisting}[style=TeX,morekeywords={name,email}]
 \newcommand\name{...}
 \begin{paramobject}{object example}
-    \name{} \email{}
+    \name\ \email
 \end{paramobject}
 % And here it works again
-\name{}
+\name
     \end{lstlisting}
     $\implies$
     \parbox{\linewidth}{
     \begin{paramobject}{object example}
-        \name{} \email{}
+        \name\ \email
     \end{paramobject}
-    \name{}
+    \name
     }\\
 
     Table example:\\
 
-    \begin{lstlisting}[style=TeX,morekeywords={formatrow,fortablerow}]
+    \begin{lstlisting}[style=TeX,morekeywords={formatrow,fortablerow,description,price}]
+\newcommand\formatrow{\description & \price \\}%
 \begin{tabular}{l | l}
     \textbf{Description} & \textbf{Price} \\ \hline
-    \newcommand\formatrow[2]{#1 & #2 \\}%
     \fortablerow{table example}{formatrow}
 \end{tabular}
     \end{lstlisting}

@@ -214,32 +214,39 @@ function api.with_rows(key, namespace, csname)
     local param = get_param(key, namespace)
     if token.is_defined(csname) then
         local tok = token.create(csname)
+        local row_content = token.get_macro(csname)
+        print('ROW CONTENT', row_content)
+        for col_csname in string.gmatch(row_content, '\\(%w*)') do
+            print('COL', col_csname)
+        end
         if param then
             if param.values or api.strict then
                 if #param.values > 0 then
                     for _, row in ipairs(param.values) do
-                        tex.sprint(tok)
-                        for _, cell in ipairs(row) do
-                            tex.sprint('{', cell:val(), '}')
+                        local format = row_content
+                        for col_key, cell in pairs(row) do
+                            format = format:gsub('\\' .. col_key, cell:val())
                         end
+                        tex.print(format)
                     end
                 end
             elseif param.columns then
                 texio.write_nl("Warning: no values set for " .. param.key)
-                if #param.columns > 0 then
-                    tex.sprint(tok)
-                    for _, col in ipairs(param.columns) do
-                        tex.sprint('{\\paramplaceholder{', (col.placeholder or col.key), '}}')
-                    end
+                local format = row_content
+                for col_key, col in pairs(param.columns) do
+                    format = format:gsub('\\' .. col_key, '{\\paramplaceholder{' .. (col.placeholder or col_key) .. '}}')
+                    --token.set_macro(col_key, '{\\paramplaceholder{' .. (col.placeholder or col_key) .. '}}', 'global')
                 end
+                tex.print(format)
+                --tex.sprint(tok, '\\\\')
             else
-                error('No values either columns available')
+                tex.error('No values either columns available')
             end
         else
-            error('Error: no such parameter')
+            tex.error('Error: no such parameter')
         end
     else
-        error('Error: no such command', csname)
+        tex.error('Error: no such command: ', csname or 'nil')
     end
 end
 

@@ -25,6 +25,7 @@
 \newcommand*\paramfield[2]{\directlua{elpi.field('#1','#2')}}
 \newenvironment{paramobject}[2][\jobname]{\directlua{elpi.with_object('#2', '#1')}}{}
 \newcommand*\forlistitem[3][\jobname]{\directlua{elpi.for_item('#2', '#1', '#3')}}
-\protect\newcommand\fortablerow[3][\jobname]{\directlua{elpi.with_rows('#2', '#1', '#3')}}
+%\newcommand\loadcell[4]{}
+\newcommand\fortablerow[3][\jobname]{\directlua{elpi.with_rows('#2', '#1', '#3')}}
 \newcommand*\loadrecipe[1][]{\directlua{elpi.recipe('#1')}}
 \newcommand*\loadpayload[1][]{\directlua{elpi.payload('#1')}}

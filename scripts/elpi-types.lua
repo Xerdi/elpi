@@ -167,8 +167,9 @@ function table_param:new(key, _o)
         key = key,
         columns = {}
     }
-    for _, col in ipairs(_o.columns) do
-        table.insert(o.columns, base_param.define(col.key, col))
+    for col_key, col in pairs(_o.columns) do
+        o.columns[col_key] = base_param.define(col_key, col)
+        --table.insert(o.columns, base_param.define(col_key, col))
     end
     setmetatable(o, self)
     self.__index = self
@@ -209,10 +210,11 @@ function base_param:load(key, value)
         self.values = {}
         for _, row_vals in ipairs(value) do
             local row = {}
-            for _, col in ipairs(self.columns) do
+            for col_key, col in pairs(self.columns) do
                 local cell = table.copy(col)
-                cell:load(col.key, row_vals[col.key])
-                table.insert(row, cell)
+                cell:load(col.key, row_vals[col_key])
+                row[col_key] = cell
+                --table.insert(row, cell)
             end
             table.insert(self.values, row)
         end

@@ -25,9 +25,9 @@ object example:
 table example:
   type: table
   columns:
-    - key: description
+    description:
       type: string
       placeholder: The description
-    - key: price
+    price:
       type: number
       placeholder: The price
