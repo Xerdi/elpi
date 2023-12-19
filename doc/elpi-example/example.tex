@@ -5,7 +5,7 @@
 \usepackage{amsmath}
 \usepackage{calc}
 
-\loadrecipe[example-specification.yaml]
+\loadrecipe[\jobname]{example-specification.yaml}
 
 \setlength{\parindent}{0pt}
 
@@ -85,7 +85,7 @@
     \begin{lstlisting}[style=TeX,morekeywords={name,email}]
 \newcommand\name{...}
 \begin{paramobject}{object example}
-    \name\ \email
+    \name \email
 \end{paramobject}
 % And here it works again
 \name
@@ -94,7 +94,7 @@
     \newcommand\name{...}%
     \parbox{\linewidth}{
     \begin{paramobject}{object example}
-        \name\ \email
+        \name \email
     \end{paramobject}
     \name
     }\\
@@ -117,7 +117,7 @@
 
 
     \section*{After values loaded}
-    \loadpayload[example.yaml]
+    \loadpayload[\jobname]{example.yaml}
 
     Boolean example:\\
 
@@ -170,7 +170,7 @@
     \begin{lstlisting}[style=TeX,morekeywords={name,email}]
 \newcommand\name{...}
 \begin{paramobject}{object example}
-    \name\ \email
+    \name \email
 \end{paramobject}
 % And here it works again
 \name
@@ -178,7 +178,7 @@
     $\implies$
     \parbox{\linewidth}{
     \begin{paramobject}{object example}
-        \name\ \email
+        \name \email
     \end{paramobject}
     \name
     }\\
