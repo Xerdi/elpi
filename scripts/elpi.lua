@@ -5,7 +5,7 @@ if not modules then
     modules = {}
 end
 
-modules['doc-payload-spec'] = {
+modules.elpi = {
     version = 0.001,
     comment = 'Extended LaTeX Parameter Interface — for specifying and inserting document parameters',
     author = 'Erik Nijenhuis',
@@ -13,6 +13,7 @@ modules['doc-payload-spec'] = {
 }
 
 local api = {
+    namespaces = {},
     parameters = {},
     strict = false,
     toks = {
@@ -37,117 +38,97 @@ texio.write_nl(string.rep('=', term_column_size))
 texio.write_nl(string.rep(' ', padding) .. APPLICATION_NAME .. string.rep(' ', padding))
 texio.write_nl(string.rep('=', term_column_size))
 texio.write_nl('')
-texio.write_nl(modules['doc-payload-spec'].comment)
-texio.write_nl('Version:\t' .. modules['doc-payload-spec'].version)
-texio.write_nl('Author:\t\t' .. modules['doc-payload-spec'].author)
-texio.write_nl('Copyright:\t' .. modules['doc-payload-spec'].license)
+texio.write_nl(modules.elpi.comment)
+texio.write_nl('Version:\t' .. modules.elpi.version)
+texio.write_nl('Author:\t\t' .. modules.elpi.author)
+texio.write_nl('Copyright:\t' .. modules.elpi.license)
 texio.write_nl('\n')
 
 -- Parsing commandline arguments
-local recipe_file
-local payload_file
+local recipe_files = {}
+local payload_files = {}
 for _, a in ipairs(arg) do
-    if string.find(a, '-recipe=.*') then
-        recipe_file = string.gsub(a, '-recipe=(.*)', '%1')
+    if string.find(a, '-+recipe=.*') then
+        local recipe_file = string.gsub(a, '-+recipe=(.*)', '%1')
+        table.insert(recipe_files, recipe_file)
         texio.write_nl("Info: using recipe file '" .. recipe_file .. "'.\n")
     end
-    if string.find(a, '-params=.*') then
-        payload_file = string.gsub(a, '-params=(.*)', '%1')
-        texio.write_nl("Info: using params file '" .. payload_file .. "'.\n")
+    if string.find(a, '-+payload=.*') then
+        local payload_file = string.gsub(a, '-+payload=(.*)', '%1')
+        table.insert(payload_files, payload_file)
+        texio.write_nl("Info: using payload file '" .. payload_file .. "'.\n")
+    end
+    if string.find(a, '-+final') then
+        api.strict = true
     end
 end
 texio.write_nl('\n')
 
-require('elpi-types')
+local elpi_namespace = require('elpi-namespace')
 local load_resource = require('elpi-parser')
-
-local recipe_loaded = false
-local payload_loaded = false
 
 local function get_param(key, namespace)
     namespace = namespace or tex.jobname
-    local tbl = api.parameters[namespace]
-    return tbl and tbl[key]
-end
-
-local function parse_parameter(key, o)
-    return base_param.define(key, o)
-end
-
-local function parse_recipe_parameters(params, namespace)
-    if not api.parameters[namespace] then
-        api.parameters[namespace] = {}
-    end
-    for key, opts in pairs(params) do
-        local param = parse_parameter(key, opts)
-        if param then
-            api.parameters[namespace][key] = param
-        end
-    end
-end
-
-local function parse_recipe(raw_recipe, namespace)
-    namespace = namespace or raw_recipe.namespace or tex.jobname
-    if raw_recipe.parameters then
-        parse_recipe_parameters(raw_recipe.parameters, namespace)
-    else
-        parse_recipe_parameters(raw_recipe, namespace)
-    end
+    local _namespace = api.namespaces[namespace]
+    return _namespace and _namespace:param(key)
 end
 
 function api.set_strict()
     api.strict = true
 end
 
-function api.recipe(name)
-    if recipe_loaded then
-        texio.write_nl('Warning: recipe already loaded. Skipping ' .. name)
-        return nil
+function api.recipe(path, namespace_name)
+    if namespace_name == '' then
+        namespace_name = nil
     end
-    local the_file = recipe_file or name
-    if recipe_file and name then
-        texio.write_nl("Warning: ignoring recipe file '" .. name .. "', and loading '" .. recipe_file .. "' instead...")
+    local filename, abs_path = elpi_namespace.parse_filename(path)
+    local raw_recipe = load_resource(abs_path)
+    local name = namespace_name or raw_recipe.namespace or filename
+    local namespace = api.namespaces[name] or elpi_namespace:new { recipe_file = abs_path, strict = api.strict }
+    if not api.namespaces[name] then
+        api.namespaces[name] = namespace
     end
-    parse_recipe(load_resource(the_file))
-    recipe_loaded = true
-    if not payload_loaded and payload_file then
-        api.params()
+    if raw_recipe.namespace then
+        namespace:load_recipe(raw_recipe.parameters)
+    else
+        namespace:load_recipe(raw_recipe)
+    end
+    if namespace.payload_file and not namespace.payload_loaded then
+        local raw_payload = load_resource(namespace.payload_file)
+        if raw_payload.namespace then
+            namespace:load_payload(raw_payload.parameters)
+        else
+            namespace:load_payload(raw_payload)
+        end
     end
 end
 
-function api.payload(name, namespace)
-    namespace = namespace or tex.jobname
-    if not recipe_loaded then
-        tex.error('Error: tried to load params before recipe. Make sure to first load the recipe.')
-        return nil
+function api.payload(path, namespace_name)
+    if namespace_name == '' then
+        namespace_name = nil
     end
-    if payload_loaded then
-        texio.write_nl('Warning: params already loaded. Skipping ' .. name)
-        return nil
+    local filename, abs_path = elpi_namespace.parse_filename(path)
+    local raw_payload = load_resource(abs_path)
+    local name = namespace_name or raw_payload.namespace or filename
+    local namespace = api.namespaces[name] or elpi_namespace:new { payload_file = abs_path, strict = api.strict }
+    if not api.namespaces[name] then
+        api.namespaces[name] = namespace
     end
-    local the_file = name or payload_file
-    if payload_file and name then
-        texio.write_nl("Warning: ignoring params file '" .. name .. "', and loading '" .. payload_file .. "' instead...")
-    end
-
-    local values = load_resource(the_file)
-    for key, value in pairs(values) do
-        if api.parameters[namespace][key] then
-            local param = api.parameters[namespace][key]
-            param:load(key, value)
+    if namespace.recipe_loaded then
+        if raw_payload.namespace then
+            namespace:load_payload(raw_payload.parameters)
         else
-            texio.write_nl('Warning: passed an unknown key ' .. key)
+            namespace:load_payload(raw_payload)
         end
-        texio.write_nl('Key' .. key)
     end
+end
 
-    texio.write_nl('Info: Enabled strict mode!')
-    api.strict = true
+function api.param_object(key, namespace)
+    return get_param(key, namespace)
 end
 
 function api.param(key, namespace)
     local param = get_param(key, namespace)
-    local output
     if param then
         param:print_val()
     else
@@ -157,7 +138,7 @@ end
 
 function api.handle_param_is_set(key, namespace)
     local param = get_param(key, namespace)
-    if param.is_set() then
+    if param and param.is_set() then
         tex.sprint(token.create('has@param@true'))
     else
         tex.sprint(token.create('has@param@false'))
@@ -184,9 +165,9 @@ function api.with_object(object_key, namespace)
     for key, param in pairs(object.fields) do
         local val = param:val()
         if val then
-            token.set_macro(key, param:val())
+            token.set_macro(key, param:val() .. '\\xspace')
         else
-            token.set_macro(key, '\\paramplaceholder{' .. (param.placeholder or key) .. '}')
+            token.set_macro(key, '\\paramplaceholder{' .. (param.placeholder or key) .. '}\\xspace')
         end
     end
 end
@@ -243,13 +224,12 @@ function api.with_rows(key, namespace, csname)
     end
 end
 
--- Load recipe and params from commandline
-if recipe_file then
-    api.recipe()
+for _, path in ipairs(recipe_files) do
+    api.recipe(path)
 end
 
-if payload_file and recipe_loaded then
-    api.payload()
+for _, path in ipairs(payload_files) do
+    api.payload(path)
 end
 
 return elpi

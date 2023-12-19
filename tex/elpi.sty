@@ -4,28 +4,29 @@
 \RequirePackage{ifthen}
 \RequirePackage{luapackageloader}
 \RequirePackage{textcomp}
+\RequirePackage{xspace}
 
-%\def\price{ASD}
-%\def\description{ASD}
-
-\newcommand*\paramplaceholder[1]{\texttt{\textbf{[}#1\textbf{]}}}
-\newcommand*\paramnotfound[1]{\paramplaceholder{{\textnormal{\textlangle unknown\textrangle}} #1}}
-\newcommand*\paramlistconjunction{,~}
+\newcommand\curnamespace{\jobname}
+\newcommand\paramplaceholder[1]{\texttt{\textbf{[}#1\textbf{]}}}
+\newcommand\paramnotfound[1]{\paramplaceholder{{\textnormal{\textlangle unknown\textrangle}} #1}}
+\newcommand\paramlistconjunction{,~}
 
 \directlua{elpi = require('elpi')}
 
-\newcommand*\strictparams{\directlua{elpi.set_strict()}}
-\newcommand*%! suppress = NonMatchingIf
-\ifparam[3]{\ifthenelse{\boolean{#1}}{#2}{#3}}
-\newcommand*\param[1]{\directlua{elpi.param('#1')}}
-\newcommand*\hasparam[3]{%
-    \edef\has@param@true{#2}%
-    \edef\has@param@false{#3}%
-    \directlua{elpi.handle_param_is_set('#1')}}
-\newcommand*\paramfield[2]{\directlua{elpi.field('#1','#2')}}
-\newenvironment{paramobject}[2][\jobname]{\directlua{elpi.with_object('#2', '#1')}}{}
-\newcommand*\forlistitem[3][\jobname]{\directlua{elpi.for_item('#2', '#1', '#3')}}
-%\newcommand\loadcell[4]{}
-\newcommand\fortablerow[3][\jobname]{\directlua{elpi.with_rows('#2', '#1', '#3')}}
-\newcommand*\loadrecipe[1][]{\directlua{elpi.recipe('#1')}}
-\newcommand*\loadpayload[1][]{\directlua{elpi.payload('#1')}}
+\newcommand\setnamespace[1]{\renewcommand\curnamespace{#1}}
+\newcommand\strictparams{\directlua{elpi.set_strict()}}
+\newcommand%! suppress = NonMatchingIf
+\ifparam[4][\curnamespace]{%
+    \directlua{local p = elpi.param_object('#2','#1') if p then p:set_bool('#2') end}%
+    \ifthenelse{\boolean{#2}}{#3}{#4}}
+\newcommand\param[2][\curnamespace]{\directlua{elpi.param('#2', '#1')}}
+\newcommand\hasparam[4][\curnamespace]{%
+    \edef\has@param@true{#3}%
+    \edef\has@param@false{#4}%
+    \directlua{elpi.handle_param_is_set('#2', '#1')}}
+\newcommand\paramfield[3][\curnamespace]{\directlua{elpi.field('#2','#3', '#1')}}
+\newenvironment{paramobject}[2][\curnamespace]{\directlua{elpi.with_object('#2', '#1')}}{}
+\newcommand\forlistitem[3][\curnamespace]{\directlua{elpi.for_item('#2', '#1', '#3')}}
+\newcommand\fortablerow[3][\curnamespace]{\directlua{elpi.with_rows('#2', '#1', '#3')}}
+\newcommand\loadrecipe[2][]{\directlua{elpi.recipe('#2', '#1')}}
+\newcommand\loadpayload[2][]{\directlua{elpi.payload('#2', '#1')}}

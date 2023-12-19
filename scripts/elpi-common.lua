@@ -8,7 +8,7 @@ function table.copy(t)
 end
 
 elpi_toks = {
-    new_bool = token.create('newboolean'),
+    new_bool = token.create('provideboolean'),
     set_bool = token.create('setboolean'),
     list_conj = token.create('paramlistconjunction'),
     placeholder_format = token.create('paramplaceholder'),

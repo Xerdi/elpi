@@ -131,7 +131,6 @@ function list_param:print_val()
         end
         tex.sprint(list[1]:val())
         for i = 2, #list do
-            print('info', list[i].type, list[i].value)
             tex.sprint(elpi_toks.list_conj, list[i]:val())
         end
         if not self.values then
@@ -169,7 +168,6 @@ function table_param:new(key, _o)
     }
     for col_key, col in pairs(_o.columns) do
         o.columns[col_key] = base_param.define(col_key, col)
-        --table.insert(o.columns, base_param.define(col_key, col))
     end
     setmetatable(o, self)
     self.__index = self
@@ -214,7 +212,6 @@ function base_param:load(key, value)
                 local cell = table.copy(col)
                 cell:load(col.key, row_vals[col_key])
                 row[col_key] = cell
-                --table.insert(row, cell)
             end
             table.insert(self.values, row)
         end
