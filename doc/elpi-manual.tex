@@ -1,30 +1,36 @@
 \documentclass{ltxdoc}
-\usepackage[titlepage]{gitinfo-lua}
+\usepackage[english]{babel}
+\usepackage[titlepage,authors]{gitinfo-lua}
 \usepackage{listings}
 \usepackage{elpi}
 \usepackage{multicol}
 \usepackage{calc}
+\usepackage{fmtcount}
+\usepackage[nodayofweek]{datetime}
 \usepackage{hyperref,embedfile}
 \usepackage{textcomp}
+\usepackage{attachfile2}
 %\usepackage{navigator}
 
 % embedding links:
 % https://tex.stackexchange.com/questions/19025/embed-link-to-an-embedded-file
 % https://stackoverflow.com/questions/59868631/can-i-attach-embed-a-file-to-a-latex-document-and-hyperlink-it-to-a-word-for-sav
-\embedfile[desc={Parameter Specification Example},filespec=example-specification.yaml]{example/example-specification.yaml}
-\embedfile[desc={Values Specification Example},filespec=example.yaml]{example/example.yaml}
+\embedfile[desc={Parameter Specification Example},filespec=example.pdf]{elpi-example/example.pdf}
+\embedfile[desc={Parameter Specification Example (YAML)},filespec=example-specification.yaml]{elpi-example/example-specification.yaml}
+\embedfile[desc={Values Specification Example},filespec=example.yaml]{elpi-example/example.yaml}
+\embedfile[desc={Values Fallback Specification Example},filespec=example.json]{elpi-example/example.json}
 
-%\embeddedfile[Parameter Specification Example]{example-spec}[example-specification.yaml]{example/example-specification.yaml}
-%\embeddedfile[Values Specification Example]{example}[example.yaml]{example/example.yaml}
+%\embeddedfile[Parameter Specification Example]{example-spec}[example-specification.yaml]{elpi-example/example-specification.yaml}
+%\embeddedfile[Values Specification Example]{example}[example.yaml]{elpi-example/example.yaml}
 
 \def\projecturl{https://github.com/Xerdi/elpi}
 
 \newcommand\showexample[5][15pt]{%
 \begin{minipage}[t]{.5\linewidth - .5 \columnsep}%
-\lstinputlisting[firstnumber={#2},linerange={#3},style=YAML,frame=single,numbers=left,xleftmargin=0pt,numbersep=10pt]{example/example-specification.yaml}
+\lstinputlisting[firstnumber={#2},linerange={#3},style=YAML,frame=single,numbers=left,xleftmargin=0pt,numbersep=10pt]{elpi-example/example-specification.yaml}
 \end{minipage}\hspace*{\columnsep}%
 \begin{minipage}[t]{.5\linewidth - .5 \columnsep}%
-\lstinputlisting[firstnumber={#4},linerange={#5},style=YAML,frame=single,numbers=left,xleftmargin={#1},numbersep=10pt]{example/example.yaml}
+\lstinputlisting[firstnumber={#4},linerange={#5},style=YAML,frame=single,numbers=left,xleftmargin={#1},numbersep=10pt]{elpi-example/example.yaml}
 \end{minipage}\\%
 }
 
@@ -34,19 +40,29 @@
 
     \begin{abstract}
         This package is meant for interfacing Lua\LaTeX{} documents in a more programmatically way with YAML\@.
-        The payload specification is a set of document parameters, which can be specified using \TeX{} macros or using an external specification file called a \textit{recipe}.
-        The payload itself is always provided as external file and can optionally be passed through the commandline to avoid changes in the \LaTeX{} document source.
+        The parameter interface is extended by loading recipe files.
+        These recipe files describe the parameter's type, placeholders and/or default values.
+        From thereon, the parameters can be specified in the document and a so called `\textit{template document}' can be created.
+        A `\textit{filled in document}' can be created by loading payload files, which all correspond to a recipe file.
+        Ideally, these payload files are passed as command line arguments.
+        This is done in the \texttt{xdpmk} program of package \texttt{xdp}\footnote{Package \texttt{xdp}: \url{https://github.com/Xerdi/xdp}}.
     \end{abstract}
     % keys designed for generating a template out of it without errors
 
     \section{Usage}
-    Before loading any \meta{payload}, the \meta{recipe} has to be loaded or specified in advance.
-    Otherwise, errors will occur.
+    \DescribeMacro{\strictparams} In order to give an error when values are missing, the \cmd{\strictparams} command can be used.
+    Make sure to do it before loading any \meta{recipe} and \meta{payload} files.
     \DescribeMacro{\loadrecipe}
     In order to load a recipe the macro \cmd{\loadrecipe}\oarg{namespace}\marg{filename} can be used.
     Where the \meta{filename} is a YAML file with its corresponding extension.
     The optional \meta{namespace} is only a placeholder in order to prevent any conflicts between duplicate \meta{key}s.
+    If left out, the \meta{namespace} defaults to the base name of the filename.
     \DescribeMacro{\loadpayload} The same behaviour counts for \cmd{\loadpayload}\oarg{namespace}\marg{filename}.
+    The order of loading \meta{recipe} and \meta{payload} files doesn't matter.
+    If the \meta{payload} file got loaded first, it will be yielded until the corresponding \meta{recipe} file is loaded.
+
+    All other macros of this package also take the optional \meta{namespace}, which by default is equal to \cmd{\jobname}.
+    \DescribeMacro{\setnamespace} This default \meta{namespace} can be changed with \cmd{\setnamespace}\marg{new default namespace}.
 
     \clearpage
     \section{Parameter Specification}
@@ -62,7 +78,7 @@
         \DescribeMacro{\param}
         With a boolean type the \cmd{\param}\oarg{namespace}\marg{name} returns either \textit{true} or \textit{false}.
         \DescribeMacro{\ifparam}
-        Additionally, it provides the \cmd{\ifparam}\marg{name}\marg{true code}\marg{false code} command for top level boolean types.
+        Additionally, it provides the \cmd{\ifparam}\oarg{namespace}\marg{name}\marg{true code}\marg{false code} command for top level boolean types.
         The macro is just a wrapper for the boolean package \texttt{ifthen}, which supports spaces in names.
         \item[string] representing a piece of text.
         All \TeX{} related symbols in the text, like \textbackslash, \% or \#, are escaped.\\
@@ -89,22 +105,37 @@
         Though, some utility commands will be set, which are only available in the \meta{csname}s implementation, in order to achieve the same goal.
         \item[object] representing a list of key value pairs.
         This parameter type requires a \meta{fields} specification to be set.
-        Any field must be of type \texttt{bool}, \texttt{string} or \texttt{number}.\\
+        Any field must be of type \texttt{bool}, \texttt{number} or \texttt{string}.\\
         \showexample{16}{16-24}{7}{7-9}
         There is no support for the \cmd{\param} command.
         \DescribeMacro{\paramfield}
         In order to show to contents there is the \cmd{\paramfield}\oarg{namespace}\marg{name}\marg{field} command.
         However, unlike the common command \cmd{\param}, the command \cmd{\hasparam} does work with object types.
 
-        \DescribeEnv{paramobject} There's also the \texttt{paramobject} environment, which takes the \meta{name} of the object as argument and defines for every field name a corresponding command.
+        \DescribeEnv{paramobject} There's also the \texttt{paramobject} environment, which takes an optional \meta{namespace} and takes the \meta{name} of the object as arguments and then defines for every field name a corresponding command.
+        Every command is appended with the \cmd{\xspace} command to prevent gobbling a space.
+        In other words, the author doesn't have to end the command with accolades `\{\}' to get the expected output.
 
         \item[table] representing a table.
-        This parameter type requires a \meta{columns} specification to be set.\\
+        This parameter type requires a \meta{columns} specification to be set.
+        The \meta{columns} describes each column by name with its own type specification.
+        Like the object field, only the types \texttt{bool}, \texttt{number} and \texttt{string} are supported column types.\\
         \showexample[20pt]{25}{25}{10}{10}
+        Like the object, the table has no support for \cmd{\param}, but comes with a table specific command \cmd{\fortablerow}\oarg{namespace}\marg{name}\marg{csname}.
+        The control sequence name \meta{csname} is a user-defined command with no arguments, containing any of the column names in a command form.
+        For example, the name \texttt{example} would be accessible as \cmd{\example} in the user-defined command body.
+
+        Like the object field, a table cell doesn't require accolades, though, this is due to the Lua implementation behind it.
+        Technically every command in the user-defined command body is replaced with the variable in Lua, instead of redefining the command itself for every row, preventing issues with macro expansion between table rows and also column separators in \TeX{}.
+
     \end{description}
 
-%    \section{Full Specification Example}
-%    \lstinputlisting[language=yaml,frame=single,caption={example-specification.yaml},captionpos=t,numbers=left]{example/example-specification.yaml}
-%
-%    \lstinputlisting[language=yaml,frame=single,caption={exampe.yaml},captionpos=t,numbers=left]{example/example.yaml}
+    \clearpage
+    \section{Example}
+
+    The source file \texttt{example.tex} is a perfect demonstration of all macros in action.
+    It shows perfectly what happens when there's a \meta{payload} file loaded and when not.
+    The result of this example \attachfile[icon=Paperclip,description={ELPI Example v\gitversion}]{elpi-example/example.pdf} is attached in the digital version of this document.
+
+    \lstinputlisting[language={[LaTeX]TeX},frame=single,caption={\ttfamily example.tex},captionpos=t,numbers=left,keywordsprefix={\\}]{elpi-example/example.tex}
 \end{document}
