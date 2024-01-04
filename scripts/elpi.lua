@@ -1,12 +1,10 @@
--- Application variables
-local APPLICATION_NAME = 'Extended LaTeX Parameter Interface'
 
 if not modules then
     modules = {}
 end
 
 modules.elpi = {
-    version = 0.001,
+    version = "0.0.1",
     comment = 'Extended LaTeX Parameter Interface — for specifying and inserting document parameters',
     author = 'Erik Nijenhuis',
     license = 'Copyright 2023 Xerdi'
@@ -25,44 +23,11 @@ local elpi = {}
 local elpi_mt = {
     __index = api,
     __newindex = function()
-        error('Cannot override or set actions for this module...')
+        tex.error('Cannot override or set actions for this module...')
     end
 }
 
 setmetatable(elpi, elpi_mt)
-
--- Writing the banner
-local term_column_size = 78
-local padding = (term_column_size - #APPLICATION_NAME) / 2
-texio.write_nl(string.rep('=', term_column_size))
-texio.write_nl(string.rep(' ', padding) .. APPLICATION_NAME .. string.rep(' ', padding))
-texio.write_nl(string.rep('=', term_column_size))
-texio.write_nl('')
-texio.write_nl(modules.elpi.comment)
-texio.write_nl('Version:\t' .. modules.elpi.version)
-texio.write_nl('Author:\t\t' .. modules.elpi.author)
-texio.write_nl('Copyright:\t' .. modules.elpi.license)
-texio.write_nl('\n')
-
--- Parsing commandline arguments
-local recipe_files = {}
-local payload_files = {}
-for _, a in ipairs(arg) do
-    if string.find(a, '-+recipe=.*') then
-        local recipe_file = string.gsub(a, '-+recipe=(.*)', '%1')
-        table.insert(recipe_files, recipe_file)
-        texio.write_nl("Info: using recipe file '" .. recipe_file .. "'.\n")
-    end
-    if string.find(a, '-+payload=.*') then
-        local payload_file = string.gsub(a, '-+payload=(.*)', '%1')
-        table.insert(payload_files, payload_file)
-        texio.write_nl("Info: using payload file '" .. payload_file .. "'.\n")
-    end
-    if string.find(a, '-+final') then
-        api.strict = true
-    end
-end
-texio.write_nl('\n')
 
 local elpi_namespace = require('elpi-namespace')
 local load_resource = require('elpi-parser')
@@ -93,6 +58,7 @@ function api.recipe(path, namespace_name)
     else
         namespace:load_recipe(raw_recipe)
     end
+    tex.print('\\UseOneTimeHook{namespace/' .. name .. '}')
     if namespace.payload_file and not namespace.payload_loaded then
         local raw_payload = load_resource(namespace.payload_file)
         if raw_payload.namespace then
@@ -100,6 +66,7 @@ function api.recipe(path, namespace_name)
         else
             namespace:load_payload(raw_payload)
         end
+        tex.print('\\UseOneTimeHook{namespace/' .. name .. '/loaded}')
     end
 end
 
@@ -120,6 +87,7 @@ function api.payload(path, namespace_name)
         else
             namespace:load_payload(raw_payload)
         end
+        tex.print('\\UseOneTimeHook{namespace/' .. name .. '/loaded}')
     end
 end
 
@@ -131,6 +99,8 @@ function api.param(key, namespace)
     local param = get_param(key, namespace)
     if param then
         param:print_val()
+    elseif api.strict then
+        tex.error('Error: Parameter not set "' .. key .. '" in namespace "' .. namespace .. '".')
     else
         tex.sprint(elpi_toks.unknown_format, '{', key, '}')
     end
@@ -138,7 +108,7 @@ end
 
 function api.handle_param_is_set(key, namespace)
     local param = get_param(key, namespace)
-    if param and param.is_set() then
+    if param and param:is_set() then
         tex.sprint(token.create('has@param@true'))
     else
         tex.sprint(token.create('has@param@false'))
@@ -222,14 +192,6 @@ function api.with_rows(key, namespace, csname)
     else
         tex.error('Error: no such command: ', csname or 'nil')
     end
-end
-
-for _, path in ipairs(recipe_files) do
-    api.recipe(path)
-end
-
-for _, path in ipairs(payload_files) do
-    api.payload(path)
 end
 
 return elpi
