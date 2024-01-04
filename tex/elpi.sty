@@ -20,9 +20,11 @@
     \directlua{local p = elpi.param_object('#2','#1') if p then p:set_bool('#2') end}%
     \ifthenelse{\boolean{#2}}{#3}{#4}}
 \newcommand\param[2][\curnamespace]{\directlua{elpi.param('#2', '#1')}}
+\newcommand\PARAM[2][\curnamespace]{\directlua{local p = elpi.param_object('#2', '#1') if p then tex.print(p:to_upper()) end}}
+\def\rawparam#1#2{\directlua{local p = elpi.param_object('#2', '#1') if p then tex.print(p:val() or p.default or p.placeholder) end}}
 \newcommand\hasparam[4][\curnamespace]{%
-    \edef\has@param@true{#3}%
-    \edef\has@param@false{#4}%
+    \def\has@param@true{#3}%
+    \def\has@param@false{#4}%
     \directlua{elpi.handle_param_is_set('#2', '#1')}}
 \newcommand\paramfield[3][\curnamespace]{\directlua{elpi.field('#2','#3', '#1')}}
 \newenvironment{paramobject}[2][\curnamespace]{\directlua{elpi.with_object('#2', '#1')}}{}
