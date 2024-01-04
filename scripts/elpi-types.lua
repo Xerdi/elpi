@@ -24,6 +24,15 @@ function base_param:val()
     return self.value or self.values or self.default
 end
 
+function base_param:to_upper()
+    local val = self:val()
+    if type(val) == 'string' then
+        return val:upper()
+    elseif type(self.placeholder) == 'string' then
+        return '[' .. self.placeholder:upper() .. ']'
+    end
+end
+
 function base_param:print_val()
     local value = self:val()
     if value ~= nil then
@@ -109,10 +118,12 @@ function list_param:new(key, _o)
         item_type = base_param.define('list_item', { type = (_o["item type"] or 'string') }),
         default = {}
     }
-    for _, default_val in ipairs(_o.default) do
-        local v = table.copy(o.item_type)
-        v:load('list_item', default_val)
-        table.insert(o.default, v)
+    if _o.default then
+        for _, default_val in ipairs(_o.default) do
+            local v = table.copy(o.item_type)
+            v:load('list_item', default_val)
+            table.insert(o.default, v)
+        end
     end
     setmetatable(o, self)
     self.__index = self

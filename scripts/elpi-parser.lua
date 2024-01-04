@@ -55,7 +55,6 @@ return function(filename)
         error('File ' .. filename .. ' doesn\'t exist...')
     end
     local raw = file:read "*a"
-    texio.write_nl('Info: Loading resouce: ' .. filename)
     file:close()
     if ext == 'json' then
         return utilities.json.tolua(raw)
