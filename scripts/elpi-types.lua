@@ -108,6 +108,15 @@ function number_param:val()
     end
 end
 
+function number_param:print_num()
+    local val = self:val()
+    if val then
+        tex.print('\\numprint{' .. val .. '}')
+    else
+        tex.sprint(elpi_toks.placeholder_format, '{', self.placeholder or self.key, '}')
+    end
+end
+
 list_param = base_param:new{
     type = 'list'
 }
