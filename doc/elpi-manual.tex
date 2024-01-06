@@ -44,10 +44,17 @@
         These recipe files describe the parameter's type, placeholders and/or default values.
         From thereon, the parameters can be specified in the document and a so called `\textit{template document}' can be created.
         A `\textit{filled in document}' can be created by loading payload files, which all correspond to a recipe file.
-        Ideally, these payload files are passed as command line arguments.
-        This is done in the \texttt{xdpmk} program of package \texttt{xdp}\footnote{Package \texttt{xdp}: \url{https://github.com/Xerdi/xdp}}.
     \end{abstract}
     % keys designed for generating a template out of it without errors
+
+    \section{Prerequisites}
+    If you're using JSON as \meta{recipe} and \meta{payload} format, the following requirements are no longer needed, since Lua\TeX{} already supports JSON formats out of the box.
+
+    For YAML support, however, this package requires the \texttt{lyaml}\footnote{Lua module \texttt{lyaml}: \href{https://github.com/gvvaughan/lyaml}{GitHub}, \href{https://luarocks.org/modules/gvvaughan/lyaml}{LuaRocks}} Lua module for parsing the YAML files.
+    This also includes the \texttt{libYAML}\footnote{Library \texttt{libYAML}: \href{https://pyyaml.org/wiki/LibYAML}{Project website}, \href{https://packages.msys2.org/package/mingw-w64-x86_64-libyaml}{MSYS2 Packages}} platform dependent library and optionally LuaRocks for installing \texttt{lyaml}.
+    Another requirement is Lua, which version meets the Lua version used by Lua\TeX{}.
+    If no \texttt{LUA\_PATH} is set, and you use LuaRocks, this package tries to call the LuaRocks executable to find the \texttt{LUA\_PATH}.
+    If \texttt{lyaml} can't be loaded, this package will fall back on accepting JSON files only.
 
     \section{Usage}
     \DescribeMacro{\strictparams} In order to give an error when values are missing, the \cmd{\strictparams} command can be used.
@@ -64,7 +71,6 @@
     All other macros of this package also take the optional \meta{namespace}, which by default is equal to \cmd{\jobname}.
     \DescribeMacro{\setnamespace} This default \meta{namespace} can be changed with \cmd{\setnamespace}\marg{new default namespace}.
 
-    \clearpage
     \section{Parameter Specification}
     Every parameter specified has a \meta{type} set.
     Optionally there is a choice between setting a \meta{default} or a \meta{placeholder} for the parameter.
@@ -72,8 +78,8 @@
         \item[bool] Next to the textual representation of \textit{true} and \textit{false}, it provides a \LaTeX{} command using the \texttt{ifthen} package.
         Therefore, only the \meta{default} setting makes sense.\\[5pt]
         \hspace*{5pt}\parbox{\linewidth-5pt}{%
-            \hfill\texttt{Parameters}\hfill\hspace*{\columnsep}%
-            \hfill\texttt{Variables}\hfill\hspace*{\columnsep}}\\%
+            \hfill\texttt{Recipe}\hfill\hspace*{\columnsep}%
+            \hfill\texttt{Payload}\hfill\hspace*{\columnsep}}\\%
         \showexample{1}{1-3}{1}{1-1}
         \DescribeMacro{\param}
         With a boolean type the \cmd{\param}\oarg{namespace}\marg{name} returns either \textit{true} or \textit{false}.
@@ -81,7 +87,7 @@
         Additionally, it provides the \cmd{\ifparam}\oarg{namespace}\marg{name}\marg{true code}\marg{false code} command for top level boolean types.
         The macro is just a wrapper for the boolean package \texttt{ifthen}, which supports spaces in names.
         \item[string] representing a piece of text.
-        All \TeX{} related symbols in the text, like \textbackslash, \% or \#, are escaped.\\
+        All \TeX{} related symbols in the text, like \textbackslash, \% and \#, are escaped.\\
         \showexample{4}{4-6}{2}{2-2}
         \DescribeMacro{\param} A string type can easily be placed in \LaTeX{} using the \cmd{\param} command.
         \item[number] representing a number, like the number type of Lua.
