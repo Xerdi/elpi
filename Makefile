@@ -1,9 +1,10 @@
+CONTRIBUTION = "elpi-$(shell git describe --tags --always).tar.gz"
 
 retry: clean-all build
 
 all: build clean
 
-package: elpi.tar.gz
+package: $(CONTRIBUTION)
 
 build: doc/elpi-manual.pdf
 
@@ -28,6 +29,6 @@ doc/elpi-manual.pdf: doc/elpi-example/example.pdf doc/elpi-manual.tex tex/elpi.s
 	lualatex --interaction=nonstopmode --shell-escape elpi-manual && \
 	lualatex --interaction=nonstopmode --shell-escape elpi-manual
 
-elpi.tar.gz: doc/elpi-manual.pdf clean
+$(CONTRIBUTION): doc/elpi-manual.pdf clean
 	@echo "Creating package tarball"
-	tar -czvf elpi.tar.gz README.md doc scripts tex
+	tar -czvf $(CONTRIBUTION) README.md doc scripts tex
