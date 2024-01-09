@@ -32,6 +32,11 @@
 \usepackage{enumitem}
 \usepackage{biblatex}
 
+\DefineBibliographyStrings{english}{%
+  bibliography = {References},
+}
+
+%! suppress = MissingBibliographystyle
 \bibliography{elpi-deps}
 
 \embedfile[desc={Parameter Specification Example},filespec=example.pdf]{elpi-example/example.pdf}
@@ -198,7 +203,7 @@
 
     \clearpage
 
-    \printbibliography
+    \printbibliography[heading=bibnumbered]
 
     \clearpage
     \section{Example}
