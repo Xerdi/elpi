@@ -10,18 +10,15 @@
 \usepackage{hyperref,embedfile}
 \usepackage{textcomp}
 \usepackage{attachfile2}
-%\usepackage{navigator}
+\usepackage{enumitem}
+\usepackage{biblatex}
 
-% embedding links:
-% https://tex.stackexchange.com/questions/19025/embed-link-to-an-embedded-file
-% https://stackoverflow.com/questions/59868631/can-i-attach-embed-a-file-to-a-latex-document-and-hyperlink-it-to-a-word-for-sav
+\bibliography{elpi-deps}
+
 \embedfile[desc={Parameter Specification Example},filespec=example.pdf]{elpi-example/example.pdf}
 \embedfile[desc={Parameter Specification Example (YAML)},filespec=example-specification.yaml]{elpi-example/example-specification.yaml}
 \embedfile[desc={Values Specification Example},filespec=example.yaml]{elpi-example/example.yaml}
 \embedfile[desc={Values Fallback Specification Example},filespec=example.json]{elpi-example/example.json}
-
-%\embeddedfile[Parameter Specification Example]{example-spec}[example-specification.yaml]{elpi-example/example-specification.yaml}
-%\embeddedfile[Values Specification Example]{example}[example.yaml]{elpi-example/example.yaml}
 
 \def\projecturl{https://github.com/Xerdi/elpi}
 
@@ -37,27 +34,51 @@
 \begin{document}
     \title{Extended \LaTeX{} Parameter Interface\thanks{This document corresponds to \texttt{elpi} version \gitversion, written on \gitdate}}
     \maketitle
-
     \begin{abstract}
-        This package is meant for interfacing Lua\LaTeX{} documents in a more programmatically way with YAML\@.
-        The parameter interface is extended by loading recipe files.
-        These recipe files describe the parameter's type, placeholders and/or default values.
-        From thereon, the parameters can be specified in the document and a so called `\textit{template document}' can be created.
-        A `\textit{filled in document}' can be created by loading payload files, which all correspond to a recipe file.
+        A package for creating `\textit{template}' and `\textit{filled in}' documents with Lua\LaTeX{}.
     \end{abstract}
-    % keys designed for generating a template out of it without errors
 
-    \section{Prerequisites}
+    \tableofcontents
+
+    \clearpage
+
+    \section{Introduction}
+    This package is meant for interfacing Lua\LaTeX{} documents in a more programmatically way with YAML\@.
+    The parameter interface is extended by loading recipe files.
+    These recipe files describe the parameter's type, placeholders and/or default values.
+    From thereon, the parameters can be specified in the document and a so called `\textit{template document}' can be created.
+    A `\textit{filled in document}' can be created by loading payload files, which all must correspond to a recipe file.
+
+    \subsection{Pros}
+    \begin{enumerate}[align=left]
+        \item Create a `\textit{template}' or `\textit{filled in}' document with the same \LaTeX{} source and YAML recipe.
+        \item Integration within systems is as easy as compiling a normal \LaTeX{} document, especially thanks to the fallback support to JSON, which is quite renown in programming languages.
+        \item Supports multiple data types and formatting macros which work in most \TeX{} environments, like \texttt{enumerate} or \texttt{tabular}.
+    \end{enumerate}
+
+    \subsection{Cons}
+    \begin{enumerate}[align=left]
+        \item The package only works with Lua\LaTeX{}.
+        \item In order for the files to be loaded, commandline option `\texttt{--shell-escape}' is required.
+        \item For YAML support, there needs to be a Lua setup with certain dependencies, which can be quite hard to setup on some systems.
+    \end{enumerate}
+
+    \subsection{Prerequisites}
     If you're using JSON as \meta{recipe} and \meta{payload} format, the following requirements are no longer needed, since Lua\TeX{} already supports JSON formats out of the box.
 
-    For YAML support, however, this package requires the \texttt{lyaml}\footnote{Lua module \texttt{lyaml}: \href{https://github.com/gvvaughan/lyaml}{GitHub}, \href{https://luarocks.org/modules/gvvaughan/lyaml}{LuaRocks}} Lua module for parsing the YAML files.
-    This also includes the \texttt{libYAML}\footnote{Library \texttt{libYAML}: \href{https://pyyaml.org/wiki/LibYAML}{Project website}, \href{https://packages.msys2.org/package/mingw-w64-x86_64-libyaml}{MSYS2 Packages}} platform dependent library and optionally LuaRocks for installing \texttt{lyaml}.
+    For YAML support, however, this package requires the \texttt{lyaml}\cite{lyaml} Lua module for parsing the YAML files.
+    This also includes the \texttt{libYAML}\cite{libYAML} platform dependent library and optionally LuaRocks for installing \texttt{lyaml}.
     Another requirement is Lua, which version meets the Lua version used by Lua\TeX{}.
     If no \texttt{LUA\_PATH} is set, and you use LuaRocks, this package tries to call the LuaRocks executable to find the \texttt{LUA\_PATH}.
     If \texttt{lyaml} can't be loaded, this package will fall back on accepting JSON files only.
 
+    \clearpage
     \section{Usage}
-    \DescribeMacro{\strictparams} In order to give an error when values are missing, the \cmd{\strictparams} command can be used.
+    This section describes the basic commands of \texttt{elpi}.
+    For more detail about type specific commands or the behavior of types with commands described here, see section~\ref{sec:spec}.\\
+
+    \subsection{Configuration}
+    \DescribeMacro{\strictparams} In order to give an error when values are missing, the \cmd{\strictparams}\footnote{The \cmd{\strictparams} command is still under development.} command can be used.
     Make sure to do it before loading any \meta{recipe} and \meta{payload} files.
     \DescribeMacro{\loadrecipe}
     In order to load a recipe the macro \cmd{\loadrecipe}\oarg{namespace}\marg{filename} can be used.
@@ -69,9 +90,26 @@
     If the \meta{payload} file got loaded first, it will be yielded until the corresponding \meta{recipe} file is loaded.
 
     All other macros of this package also take the optional \meta{namespace}, which by default is equal to \cmd{\jobname}.
-    \DescribeMacro{\setnamespace} This default \meta{namespace} can be changed with \cmd{\setnamespace}\marg{new default namespace}.
+    \DescribeMacro{\setnamespace} This default \meta{namespace} can be changed with \cmd{\setnamespace}\marg{new default namespace}.\\
 
-    \section{Parameter Specification}
+    \subsection{Displaying Parameters}
+    For displaying variables, the commands \cmd{\param} and \cmd{\PARAM} share the same interface.
+    \DescribeMacro{\param} The most trivial, displaying the variable as-is, is \cmd{\param}\oarg{namespace}\marg{key}.
+    \DescribeMacro{\PARAM} The \cmd{\PARAM} however, shows the value as upper case.
+
+    In some cases, it's required to output the text without any \TeX{} related functionality.
+    Another case is that some environments don't take macros with optional arguments well.
+    \DescribeMacro{\rawparam} For these cases there is \cmd{\rawparam}\marg{namespace}\marg{key}, which takes the namespace as mandatory argument, instead of optional, and doesn't output fancy \TeX{} placeholders.\\
+
+    \DescribeMacro{\hasparam} To check whether a parameter is set, the \cmd{\hasparam}\oarg{namespace}\marg{key}\marg{true case}\marg{false case} command is used.
+    However, a more robust way is using \LaTeX{} hooks.
+    For recipes being loaded, the hook \texttt{namespace/}\meta{name} is triggered once.
+    For payloads being loaded, the hook \texttt{namespace/}\meta{name}\texttt{loaded} is triggered once.
+    For more information on \LaTeX{} hooks, read the \texttt{lthooks} manual.
+
+    \clearpage
+
+    \section{Parameter Specification}\label{sec:spec}
     Every parameter specified has a \meta{type} set.
     Optionally there is a choice between setting a \meta{default} or a \meta{placeholder} for the parameter.
     \begin{description}
@@ -93,7 +131,9 @@
         \item[number] representing a number, like the number type of Lua.
         In most cases it's necessary to use \meta{default} instead of \meta{placeholder}, especially when the number is used in calculations, since a placeholder will cause errors in \LaTeX{} calculations.\\
         \showexample{7}{7-9}{3}{3-3}
-        A number type can also be used with \cmd{\param}, just like the string type.
+        A number type can be used with \cmd{\param}, just like the string type.
+        \DescribeMacro{\numparam} However, the \cmd{\numparam}\oarg{namespace}\marg{name} command uses \cmd{\numprint} to properly format the number according to the selected language.
+        Read the documentation of package \texttt{numprint} for more information.
         \item[list] representing a list of values.
         The value type is specified by \meta{value type}.
         A \meta{default} setting can be set.
@@ -127,6 +167,7 @@
         The \meta{columns} describes each column by name with its own type specification.
         Like the object field, only the types \texttt{bool}, \texttt{number} and \texttt{string} are supported column types.\\
         \showexample[20pt]{25}{25}{10}{10}
+        \DescribeMacro{\fortablerow}
         Like the object, the table has no support for \cmd{\param}, but comes with a table specific command \cmd{\fortablerow}\oarg{namespace}\marg{name}\marg{csname}.
         The control sequence name \meta{csname} is a user-defined command with no arguments, containing any of the column names in a command form.
         For example, the name \texttt{example} would be accessible as \cmd{\example} in the user-defined command body.
@@ -135,6 +176,10 @@
         Technically every command in the user-defined command body is replaced with the variable in Lua, instead of redefining the command itself for every row, preventing issues with macro expansion between table rows and also column separators in \TeX{}.
 
     \end{description}
+
+    \clearpage
+
+    \printbibliography
 
     \clearpage
     \section{Example}
