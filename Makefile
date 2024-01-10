@@ -31,4 +31,4 @@ doc/elpi-manual.pdf: doc/elpi-example/example.pdf doc/elpi-manual.tex tex/elpi.s
 
 $(CONTRIBUTION): doc/elpi-manual.pdf clean
 	@echo "Creating package tarball"
-	tar -czvf $(CONTRIBUTION) README.md doc scripts tex
+	tar --transform 's,^\.,elpi,' -czvf $(CONTRIBUTION) ./README.md ./doc ./scripts ./tex
