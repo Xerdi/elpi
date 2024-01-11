@@ -48,10 +48,10 @@
 
 \newcommand\showexample[5][15pt]{%
 \begin{minipage}[t]{.5\linewidth - .5 \columnsep}%
-\lstinputlisting[firstnumber={#2},linerange={#3},style=YAML,frame=single,numbers=left,xleftmargin=0pt,numbersep=10pt]{elpi-example/example-specification.yaml}
+\lstinputlisting[firstnumber={#2},linerange={#3},style=YAML,frame=single,numbers=left,xleftmargin=0pt,numbersep=10pt,columns=fullflexible]{elpi-example/example-specification.yaml}
 \end{minipage}\hspace*{\columnsep}%
 \begin{minipage}[t]{.5\linewidth - .5 \columnsep}%
-\lstinputlisting[firstnumber={#4},linerange={#5},style=YAML,frame=single,numbers=left,xleftmargin={#1},numbersep=10pt]{elpi-example/example.yaml}
+\lstinputlisting[firstnumber={#4},linerange={#5},style=YAML,frame=single,numbers=left,xleftmargin={#1},numbersep=10pt,columns=fullflexible]{elpi-example/example.yaml}
 \end{minipage}\\%
 }
 
@@ -212,5 +212,5 @@
     It shows perfectly what happens when there's a \meta{payload} file loaded and when not.
     The result of this example \attachfile[icon=Paperclip,description={ELPI Example v\gitversion}]{elpi-example/example.pdf} is attached in the digital version of this document.
 
-    \lstinputlisting[language={[LaTeX]TeX},frame=single,caption={\ttfamily example.tex},captionpos=t,numbers=left,keywordsprefix={\\},firstnumber=20,firstline=20]{elpi-example/example.tex}
+    \lstinputlisting[language={[LaTeX]TeX},frame=single,caption={\ttfamily example.tex},captionpos=t,numbers=left,keywordsprefix={\\},firstnumber=20,firstline=20,columns=fullflexible]{elpi-example/example.tex}
 \end{document}
