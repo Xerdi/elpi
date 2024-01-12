@@ -1,4 +1,4 @@
--- elpi.lua
+-- lua-placeholders.lua
 -- Copyright 2024 E. Nijenhuis
 --
 -- This work may be distributed and/or modified under the
@@ -13,15 +13,16 @@
 --
 -- The Current Maintainer of this work is E. Nijenhuis.
 --
--- This work consists of the files elpi.sty elpi-manual.pdf
--- elpi.lua elpi-common.lua elpi-namespace.lua elpi-parser.lua
--- and elpi-types.lua
+-- This work consists of the files lua-placeholders.sty
+-- lua-placeholders-manual.pdf lua-placeholders.lua
+-- lua-placeholders-common.lua lua-placeholders-namespace.lua
+-- lua-placeholders-parser.lua and lua-placeholders-types.lua
 
 if not modules then
     modules = {}
 end
 
-modules.elpi = {
+modules.lua_placeholders = {
     version = "0.0.1",
     date = "2024/01/09",
     comment = 'Extended LaTeX Parameter Interface — for specifying and inserting document parameters',
@@ -38,18 +39,18 @@ local api = {
         is_set_false = token.create('has@param@false'),
     }
 }
-local elpi = {}
-local elpi_mt = {
+local lua_placeholders = {}
+local lua_placeholders_mt = {
     __index = api,
     __newindex = function()
         tex.error('Cannot override or set actions for this module...')
     end
 }
 
-setmetatable(elpi, elpi_mt)
+setmetatable(lua_placeholders, lua_placeholders_mt)
 
-local elpi_namespace = require('elpi-namespace')
-local load_resource = require('elpi-parser')
+local lua_placeholders_namespace = require('lua-placeholders-namespace')
+local load_resource = require('lua-placeholders-parser')
 
 local function get_param(key, namespace)
     namespace = namespace or tex.jobname
@@ -65,10 +66,10 @@ function api.recipe(path, namespace_name)
     if namespace_name == '' then
         namespace_name = nil
     end
-    local filename, abs_path = elpi_namespace.parse_filename(path)
+    local filename, abs_path = lua_placeholders_namespace.parse_filename(path)
     local raw_recipe = load_resource(abs_path)
     local name = namespace_name or raw_recipe.namespace or filename
-    local namespace = api.namespaces[name] or elpi_namespace:new { recipe_file = abs_path, strict = api.strict }
+    local namespace = api.namespaces[name] or lua_placeholders_namespace:new { recipe_file = abs_path, strict = api.strict }
     if not api.namespaces[name] then
         api.namespaces[name] = namespace
     end
@@ -93,10 +94,10 @@ function api.payload(path, namespace_name)
     if namespace_name == '' then
         namespace_name = nil
     end
-    local filename, abs_path = elpi_namespace.parse_filename(path)
+    local filename, abs_path = lua_placeholders_namespace.parse_filename(path)
     local raw_payload = load_resource(abs_path)
     local name = namespace_name or raw_payload.namespace or filename
-    local namespace = api.namespaces[name] or elpi_namespace:new { payload_file = abs_path, strict = api.strict }
+    local namespace = api.namespaces[name] or lua_placeholders_namespace:new { payload_file = abs_path, strict = api.strict }
     if not api.namespaces[name] then
         api.namespaces[name] = namespace
     end
@@ -121,7 +122,7 @@ function api.param(key, namespace)
     elseif api.strict then
         tex.error('Error: Parameter not set "' .. key .. '" in namespace "' .. namespace .. '".')
     else
-        tex.sprint(elpi_toks.unknown_format, '{', key, '}')
+        tex.sprint(lua_placeholders_toks.unknown_format, '{', key, '}')
     end
 end
 
@@ -142,7 +143,7 @@ function api.field(object_key, field, namespace)
         if f then
             f:print_val()
         else
-            tex.sprint(elpi_toks.unknown_format, '{', field, '}')
+            tex.sprint(lua_placeholders_toks.unknown_format, '{', field, '}')
         end
     else
         tex.error('No such object', object_key)
@@ -171,7 +172,7 @@ function api.for_item(list_key, namespace, csname)
                 if param.values then
                     tex.sprint(tok, '{', item:val(), '}')
                 else
-                    tex.sprint(tok, '{', elpi_toks.placeholder_format, '{', item:val(), '}}')
+                    tex.sprint(tok, '{', lua_placeholders_toks.placeholder_format, '{', item:val(), '}}')
                 end
             end
         else
@@ -213,4 +214,4 @@ function api.with_rows(key, namespace, csname)
     end
 end
 
-return elpi
+return lua_placeholders

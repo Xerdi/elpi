@@ -1,6 +1,6 @@
-# Extended LaTeX Parameter Interface
+# Lua(TeX) Placeholders
 
-A LaTeX package for specifying and inserting document parameters with JSON or YAML formats.
+A LaTeX package for specifying and inserting document placeholders with JSON or YAML formats.
 
 ## Installation
 In order to install this package the right way, one should create the release tarball first with `make package`.

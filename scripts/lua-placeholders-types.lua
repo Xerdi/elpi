@@ -1,4 +1,4 @@
--- elpi-types.lua
+-- lua-placeholders-types.lua
 -- Copyright 2024 E. Nijenhuis
 --
 -- This work may be distributed and/or modified under the
@@ -13,11 +13,12 @@
 --
 -- The Current Maintainer of this work is E. Nijenhuis.
 --
--- This work consists of the files elpi.sty elpi-manual.pdf
--- elpi.lua elpi-common.lua elpi-namespace.lua elpi-parser.lua
--- and elpi-types.lua
+-- This work consists of the files lua-placeholders.sty
+-- lua-placeholders-manual.pdf lua-placeholders.lua
+-- lua-placeholders-common.lua lua-placeholders-namespace.lua
+-- lua-placeholders-parser.lua and lua-placeholders-types.lua
 
-require('elpi-common')
+require('lua-placeholders-common')
 
 function table.copy(t)
     local u = { }
@@ -57,7 +58,7 @@ function base_param:print_val()
     if value ~= nil then
         tex.write(value)
     else
-        tex.sprint(elpi_toks.placeholder_format, '{', self.placeholder or self.key, '}')
+        tex.sprint(lua_placeholders_toks.placeholder_format, '{', self.placeholder or self.key, '}')
     end
 end
 
@@ -72,7 +73,7 @@ function bool_param:new(key, _o)
     }
     setmetatable(o, self)
     self.__index = self
-    tex.sprint(elpi_toks.new_bool, '{', o.key, '}')
+    tex.sprint(lua_placeholders_toks.new_bool, '{', o.key, '}')
     return o
 end
 
@@ -89,7 +90,7 @@ function bool_param:val()
 end
 
 function bool_param:set_bool(key)
-    tex.sprint(elpi_toks.set_bool, '{', key, '}{', self:val(), '}')
+    tex.sprint(lua_placeholders_toks.set_bool, '{', key, '}{', self:val(), '}')
 end
 
 str_param = base_param:new{
@@ -132,7 +133,7 @@ function number_param:print_num()
     if val then
         tex.print('\\numprint{' .. val .. '}')
     else
-        tex.sprint(elpi_toks.placeholder_format, '{', self.placeholder or self.key, '}')
+        tex.sprint(lua_placeholders_toks.placeholder_format, '{', self.placeholder or self.key, '}')
     end
 end
 
@@ -166,11 +167,11 @@ function list_param:print_val()
     local list = self:val()
     if #list > 0 then
         if not self.values then
-            tex.sprint(elpi_toks.placeholder_format, '{')
+            tex.sprint(lua_placeholders_toks.placeholder_format, '{')
         end
         tex.sprint(list[1]:val())
         for i = 2, #list do
-            tex.sprint(elpi_toks.list_conj, list[i]:val())
+            tex.sprint(lua_placeholders_toks.list_conj, list[i]:val())
         end
         if not self.values then
             tex.sprint('}')

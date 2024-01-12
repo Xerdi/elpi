@@ -1,4 +1,4 @@
--- elpi-common.lua
+-- lua-placeholders-common.lua
 -- Copyright 2024 E. Nijenhuis
 --
 -- This work may be distributed and/or modified under the
@@ -13,9 +13,10 @@
 --
 -- The Current Maintainer of this work is E. Nijenhuis.
 --
--- This work consists of the files elpi.sty elpi-manual.pdf
--- elpi.lua elpi-common.lua elpi-namespace.lua elpi-parser.lua
--- and elpi-types.lua
+-- This work consists of the files lua-placeholders.sty
+-- lua-placeholders-manual.pdf lua-placeholders.lua
+-- lua-placeholders-common.lua lua-placeholders-namespace.lua
+-- lua-placeholders-parser.lua and lua-placeholders-types.lua
 
 function table.copy(t)
     local u = { }
@@ -25,7 +26,7 @@ function table.copy(t)
     return setmetatable(u, getmetatable(t))
 end
 
-elpi_toks = {
+lua_placeholders_toks = {
     new_bool = token.create('provideboolean'),
     set_bool = token.create('setboolean'),
     list_conj = token.create('paramlistconjunction'),

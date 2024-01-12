@@ -1,4 +1,4 @@
-%% elpi-manual.tex
+%% lua-placeholders-manual.tex
 %% Copyright 2024 E. Nijenhuis
 %
 % This work may be distributed and/or modified under the
@@ -13,15 +13,15 @@
 %
 % The Current Maintainer of this work is E. Nijenhuis.
 %
-% This work consists of the files elpi.sty elpi-manual.pdf
-% elpi.lua elpi-common.lua elpi-namespace.lua elpi-parser.lua
-% and elpi-types.lua
+% This work consists of the files lua-placeholders.sty lua-placeholders-manual.pdf
+% lua-placeholders.lua lua-placeholders-common.lua lua-placeholders-namespace.lua lua-placeholders-parser.lua
+% and lua-placeholders-types.lua
 
 \documentclass{ltxdoc}
 \usepackage[english]{babel}
 \usepackage[titlepage,authors]{gitinfo-lua}
 \usepackage{listings}
-\usepackage{elpi}
+\usepackage{lua-placeholders}
 \usepackage{multicol}
 \usepackage{calc}
 \usepackage{fmtcount}
@@ -37,29 +37,29 @@
 }
 
 %! suppress = MissingBibliographystyle
-\bibliography{elpi-deps}
+\bibliography{lua-placeholders-deps}
 
-\embedfile[desc={Parameter Specification Example},filespec=example.pdf]{elpi-example/example.pdf}
-\embedfile[desc={Parameter Specification Example (YAML)},filespec=example-specification.yaml]{elpi-example/example-specification.yaml}
-\embedfile[desc={Values Specification Example},filespec=example.yaml]{elpi-example/example.yaml}
-\embedfile[desc={Values Fallback Specification Example},filespec=example.json]{elpi-example/example.json}
+\embedfile[desc={Parameter Specification Example},filespec=example.pdf]{lua-placeholders-example/example.pdf}
+\embedfile[desc={Parameter Specification Example (YAML)},filespec=example-specification.yaml]{lua-placeholders-example/example-specification.yaml}
+\embedfile[desc={Values Specification Example},filespec=example.yaml]{lua-placeholders-example/example.yaml}
+\embedfile[desc={Values Fallback Specification Example},filespec=example.json]{lua-placeholders-example/example.json}
 
-\def\projecturl{https://github.com/Xerdi/elpi}
+\def\projecturl{https://github.com/Xerdi/lua-placeholders}
 
 \newcommand\showexample[5][15pt]{%
 \begin{minipage}[t]{.5\linewidth - .5 \columnsep}%
-\lstinputlisting[firstnumber={#2},linerange={#3},style=YAML,frame=single,numbers=left,xleftmargin=0pt,numbersep=10pt,columns=fullflexible]{elpi-example/example-specification.yaml}
+\lstinputlisting[firstnumber={#2},linerange={#3},style=YAML,frame=single,numbers=left,xleftmargin=0pt,numbersep=10pt,columns=fullflexible]{lua-placeholders-example/example-specification.yaml}
 \end{minipage}\hspace*{\columnsep}%
 \begin{minipage}[t]{.5\linewidth - .5 \columnsep}%
-\lstinputlisting[firstnumber={#4},linerange={#5},style=YAML,frame=single,numbers=left,xleftmargin={#1},numbersep=10pt,columns=fullflexible]{elpi-example/example.yaml}
+\lstinputlisting[firstnumber={#4},linerange={#5},style=YAML,frame=single,numbers=left,xleftmargin={#1},numbersep=10pt,columns=fullflexible]{lua-placeholders-example/example.yaml}
 \end{minipage}\\%
 }
 
 \begin{document}
-    \title{Extended \LaTeX{} Parameter Interface\thanks{This document corresponds to \texttt{elpi} version \gitversion, written on \gitdate}}
+    \title{Lua \paramplaceholder{placeholders}\thanks{This document corresponds to \texttt{lua-placeholders} version \gitversion, written on \gitdate}}
     \maketitle
     \begin{abstract}
-        A package for creating `\textit{template}' and `\textit{filled in}' documents with Lua\LaTeX{}.
+        A package for creating `example' documents, which show parameters as placeholders and `actual copy' documents, which show parameters with the real data, written in Lua\TeX{}.
     \end{abstract}
 
     \tableofcontents
@@ -67,15 +67,15 @@
     \clearpage
 
     \section{Introduction}
-    This package is meant for interfacing Lua\LaTeX{} documents in a more programmatically way with YAML\@.
-    The parameter interface is extended by loading recipe files.
+    This package is meant for setting parameters in a Lua\LaTeX{} document in a more programmatically way with YAML\@.
+    Parameters can be specified by adding a `recipe' file.
     These recipe files describe the parameter's type, placeholders and/or default values.
-    From thereon, the parameters can be specified in the document and a so called `\textit{template document}' can be created.
-    A `\textit{filled in document}' can be created by loading payload files, which all must correspond to a recipe file.
+    From thereon, the placeholders can be displayed in the document and an `\textit{example}' document can be created.
+    An `\textit{actual copy}' document can be created by loading additional payload files, which all must correspond to a recipe file.
 
     \subsection{Pros}
     \begin{enumerate}[align=left]
-        \item Create a `\textit{template}' or `\textit{filled in}' document with the same \LaTeX{} source and YAML recipe.
+        \item Create an `\textit{example}' or `\textit{actual copy}' document with the same \LaTeX{} source and YAML recipe.
         \item Integration within systems is as easy as compiling a normal \LaTeX{} document, especially thanks to the fallback support to JSON, which is quite renown in programming languages.
         \item Supports multiple data types and formatting macros which work in most \TeX{} environments, like \texttt{enumerate} or \texttt{tabular}.
     \end{enumerate}
@@ -98,7 +98,7 @@
 
     \clearpage
     \section{Usage}
-    This section describes the basic commands of \texttt{elpi}.
+    This section describes the basic commands of \texttt{lua-placeholders}.
     For more detail about type specific commands or the behavior of types with commands described here, see section~\ref{sec:spec}.\\
 
     \subsection{Configuration}
@@ -210,7 +210,7 @@
 
     The source file \texttt{example.tex} is a perfect demonstration of all macros in action.
     It shows perfectly what happens when there's a \meta{payload} file loaded and when not.
-    The result of this example \attachfile[icon=Paperclip,description={ELPI Example v\gitversion}]{elpi-example/example.pdf} is attached in the digital version of this document.
+    The result of this example \attachfile[icon=Paperclip,description={ELPI Example v\gitversion}]{lua-placeholders-example/example.pdf} is attached in the digital version of this document.
 
-    \lstinputlisting[language={[LaTeX]TeX},frame=single,caption={\ttfamily example.tex},captionpos=t,numbers=left,keywordsprefix={\\},firstnumber=20,firstline=20,columns=fullflexible]{elpi-example/example.tex}
+    \lstinputlisting[language={[LaTeX]TeX},frame=single,caption={\ttfamily example.tex},captionpos=t,numbers=left,keywordsprefix={\\},firstnumber=20,firstline=20,columns=fullflexible]{lua-placeholders-example/example.tex}
 \end{document}

@@ -1,4 +1,4 @@
-elpi-*.tar.gz
+*.tar.gz
 *.atfi
 *.pdf
 .idea

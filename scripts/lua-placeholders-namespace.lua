@@ -1,4 +1,4 @@
--- elpi-namespace.lua
+-- lua-placeholders-namespace.lua
 -- Copyright 2024 E. Nijenhuis
 --
 -- This work may be distributed and/or modified under the
@@ -13,11 +13,12 @@
 --
 -- The Current Maintainer of this work is E. Nijenhuis.
 --
--- This work consists of the files elpi.sty elpi-manual.pdf
--- elpi.lua elpi-common.lua elpi-namespace.lua elpi-parser.lua
--- and elpi-types.lua
+-- This work consists of the files lua-placeholders.sty
+-- lua-placeholders-manual.pdf lua-placeholders.lua
+-- lua-placeholders-common.lua lua-placeholders-namespace.lua
+-- lua-placeholders-parser.lua and lua-placeholders-types.lua
 
-require('elpi-types')
+require('lua-placeholders-types')
 
 local namespace = {
     strict = false,
