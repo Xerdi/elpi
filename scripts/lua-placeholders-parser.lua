@@ -22,6 +22,12 @@ local LUA_VERSION = string.sub(_VERSION, 5, -1)
 
 yaml_supported = false
 
+-- Check for tiny yaml as YAML fallback option
+local tiny_found, tiny = pcall(require,'tinyyaml')
+if tiny_found then
+    texio.write_nl('Found fallback support for YAML (tiny yaml)')
+end
+
 -- Check if LUA_PATH is set
 local current_path = os.getenv('LUA_PATH')
 if current_path then
@@ -44,6 +50,9 @@ else
                 texio.write_nl('Info: Setting LUA_CPATH from LuaRocks', lua_cpath)
                 package.cpath = lua_cpath
             end
+        elseif tiny_found then
+            texio.write_nl('Warning: could\'t find LuaRocks installation')
+            texio.write_nl('Info: falling back to tiny yaml implementation')
         else
             texio.write_nl('Error: couldn\'t find LuaRocks installation')
             texio.write_nl("Info: LUA PATH:\n\t" .. string.gsub(package.path, ';', '\n\t') .. '\n\n')
@@ -59,12 +68,12 @@ require('lualibs')
 
 -- Require YAML configuration files
 -- Make sure to have the apt package lua-yaml installed
-local status, yaml = pcall(require, 'lyaml')
-if status then
+local lyaml_found, lyaml = pcall(require, 'lyaml')
+if lyaml_found or tiny_found then
     yaml_supported = true
 else
     texio.write_nl('Warning: No YAML support.')
-    texio.write_nl(yaml)
+    texio.write_nl(lyaml)
     texio.write_nl('Info: Falling back to JSON.')
 end
 
@@ -79,8 +88,10 @@ return function(filename)
     if ext == 'json' then
         return utilities.json.tolua(raw)
     else
-        if yaml_supported then
-            return yaml.load(raw)
+        if lyaml_found then
+            return lyaml.load(raw)
+        elseif tiny_found then
+            return tiny.parse(raw)
         else
             tex.error('Error: no YAML support!')
         end
