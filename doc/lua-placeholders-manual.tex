@@ -85,7 +85,6 @@
     \begin{enumerate}[align=left]
         \item The package only works with Lua\LaTeX{}.
         \item In order for the files to be loaded, commandline option `\texttt{--shell-escape}' is required.
-        \item For YAML support, there needs to be a Lua setup with certain dependencies, which can be quite hard to setup on some systems.
     \end{enumerate}
 
     \subsection{Prerequisites}
@@ -95,7 +94,7 @@
     This also includes the \texttt{libYAML}\cite{libYAML} platform dependent library and optionally LuaRocks for installing \texttt{lyaml}.
     Another requirement is Lua, which version meets the Lua version used by Lua\TeX{}.
     If no \texttt{LUA\_PATH} is set, and you use LuaRocks, this package tries to call the LuaRocks executable to find the \texttt{LUA\_PATH}.
-    If \texttt{lyaml} can't be loaded, this package will fall back on accepting JSON files only.
+    If \texttt{lyaml} can't be loaded, this package will first try to fall back with \texttt{lua-tinyyaml}\cite{tiny} for lesser YAML support and secondly fall back on accepting JSON files only.
 
     \clearpage
     \section{Usage}
