@@ -23,8 +23,8 @@ if not modules then
 end
 
 modules.lua_placeholders = {
-    version = "1.0.0",
-    date = "2024/01/23",
+    version = "1.0.1",
+    date = "2024/02/12",
     comment = 'Extended LaTeX Parameter Interface — for specifying and inserting document parameters',
     author = 'Erik Nijenhuis',
     license = 'free'
