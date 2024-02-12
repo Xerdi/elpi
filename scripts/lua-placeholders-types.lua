@@ -40,8 +40,12 @@ function base_param:is_set()
     return self and ((self.values or self.fields or self.value) ~= nil)
 end
 
-function base_param:val()
+function base_param:raw_val()
     return self.value or self.values or self.default
+end
+
+function base_param:val()
+    return self:raw_val()
 end
 
 function base_param:to_upper()
@@ -56,7 +60,7 @@ end
 function base_param:print_val()
     local value = self:val()
     if value ~= nil then
-        tex.write(value)
+        tex.sprint(value)
     else
         tex.sprint(lua_placeholders_toks.placeholder_format, '{', self.placeholder or self.key, '}')
     end
@@ -77,7 +81,7 @@ function bool_param:new(key, _o)
     return o
 end
 
-function bool_param:val()
+function bool_param:raw_val()
     local value
     if self.value ~= nil then
         value = tostring(self.value)
@@ -122,19 +126,27 @@ function number_param:new(key, _o)
     return o
 end
 
-function number_param:val()
+function number_param:raw_val()
     if self.value or self.default then
-        return tex.number(self.value or self.default)
+        return self.value or self.default
+    end
+end
+
+function number_param:val()
+    local val = self:raw_val()
+    if val then
+        if token.is_defined('numprint') then
+            return '\\numprint{' .. val .. '}'
+        else
+            texio.write_nl([[Warning: package 'numprint' not loaded. Outputting numbers as is.]])
+            return val
+        end
     end
 end
 
 function number_param:print_num()
-    local val = self:val()
-    if val then
-        tex.print('\\numprint{' .. val .. '}')
-    else
-        tex.sprint(lua_placeholders_toks.placeholder_format, '{', self.placeholder or self.key, '}')
-    end
+    texio.write_nl('Warning: number_param:print_num is deprecated. Use number_param:print_val instead')
+    self:print_val()
 end
 
 list_param = base_param:new{

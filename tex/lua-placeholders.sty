@@ -41,7 +41,7 @@
     \ifthenelse{\boolean{#2}}{#3}{#4}}
 \newcommand\param[2][\curnamespace]{\directlua{lua_placeholders.param('#2', '#1')}}
 \newcommand\PARAM[2][\curnamespace]{\directlua{local p = lua_placeholders.param_object('#2', '#1') if p then tex.print(p:to_upper()) end}}
-\def\rawparam#1#2{\directlua{local p = lua_placeholders.param_object('#2', '#1') if p then tex.print(p:val() or p.default or p.placeholder) end}}
+\def\rawparam#1#2{\directlua{local p = lua_placeholders.param_object('#2', '#1') if p then tex.print(p:raw_val() or p.default or p.placeholder) end}}
 \newcommand\numparam[2][\curnamespace]{\directlua{local n = lua_placeholders.param_object('#2', '#1') if n then n:print_num() end}}
 \newcommand\hasparam[4][\curnamespace]{%
     \def\has@param@true{#3}%
