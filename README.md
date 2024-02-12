@@ -1,4 +1,5 @@
 # Lua(TeX) Placeholders
+![CTAN Version](https://img.shields.io/ctan/v/lua-placeholders)
 
 A LaTeX package for specifying and inserting document placeholders with JSON or YAML formats.
 
