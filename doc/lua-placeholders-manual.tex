@@ -32,6 +32,7 @@
 \usepackage{attachfile2}
 \usepackage{enumitem}
 \usepackage{biblatex}
+\usepackage[english]{isodate}
 
 \DefineBibliographyStrings{english}{%
   bibliography = {References},
@@ -43,7 +44,6 @@
 \embedfile[desc={Parameter Specification Example},filespec=example.pdf]{lua-placeholders-example/example.pdf}
 \embedfile[desc={Parameter Specification Example (YAML)},filespec=example-specification.yaml]{lua-placeholders-example/example-specification.yaml}
 \embedfile[desc={Values Specification Example},filespec=example.yaml]{lua-placeholders-example/example.yaml}
-\embedfile[desc={Values Fallback Specification Example},filespec=example.json]{lua-placeholders-example/example.json}
 
 \def\projecturl{https://github.com/Xerdi/lua-placeholders}
 
@@ -88,13 +88,16 @@
     \end{enumerate}
 
     \subsection{Prerequisites}
+    For proper number formatting package \texttt{numprint}\cite{numprint} is required.
+
+    \subsubsection{YAML Support}
     If you're using JSON as \meta{recipe} and \meta{payload} format, the following requirements are no longer needed, since Lua\TeX{} already supports JSON formats out of the box.
 
     For YAML support, however, this package requires the \texttt{lyaml}\cite{lyaml} Lua module for parsing the YAML files.
     This also includes the \texttt{libYAML}\cite{libYAML} platform dependent library and optionally LuaRocks for installing \texttt{lyaml}.
     Another requirement is Lua, which version meets the Lua version used by Lua\TeX{}.
     If no \texttt{LUA\_PATH} is set, and you use LuaRocks, this package tries to call the LuaRocks executable to find the \texttt{LUA\_PATH}.
-    If \texttt{lyaml} can't be loaded, this package will first try to fall back with \texttt{lua-tinyyaml}\cite{tiny} for lesser YAML support and secondly fall back on accepting JSON files only.
+    If \texttt{lyaml} can't be loaded, this package will first try to fall back with \texttt{lua-tinyyaml}\cite{lua-tinyyaml} for lesser YAML support and secondly fall back on accepting JSON files only.
 
     \clearpage
     \section{Usage}
@@ -155,9 +158,14 @@
         \item[number] representing a number, like the number type of Lua.
         In most cases it's necessary to use \meta{default} instead of \meta{placeholder}, especially when the number is used in calculations, since a placeholder will cause errors in \LaTeX{} calculations.\\
         \showexample{7}{7-9}{3}{3-3}
+        \DescribeMacro{\param}
         A number type can be used with \cmd{\param}, just like the string type.
-        \DescribeMacro{\numparam} However, the \cmd{\numparam}\oarg{namespace}\marg{name} command uses \cmd{\numprint} to properly format the number according to the selected language.
+        In version 1.0.0 there was a special command \cmd{\numparam}, which is now deprecated as it now is the default implementation for number types using \cmd{\param}.
+        When \cmd{\numprint} is defined, it will use it for display using \cmd{\param}.
+        When \cmd{\numprint} isn't defined, it will print a warning message and formats the number as is.
+        The same behavior counts for number types within a \texttt{list}, \texttt{object} or \texttt{table}.
         Read the documentation of package \texttt{numprint} for more information.
+        If you need a nonformatted version of the number, use \cmd{\rawparam} instead.
         \item[list] representing a list of values.
         The value type is specified by \meta{value type}.
         A \meta{default} setting can be set.
@@ -176,7 +184,7 @@
         \item[object] representing a list of key value pairs.
         This parameter type requires a \meta{fields} specification to be set.
         Any field must be of type \texttt{bool}, \texttt{number} or \texttt{string}.\\
-        \showexample{16}{16-24}{7}{7-9}
+        \showexample{16}{16-27}{7}{7-10}
         There is no support for the \cmd{\param} command.
         \DescribeMacro{\paramfield}
         In order to show to contents there is the \cmd{\paramfield}\oarg{namespace}\marg{name}\marg{field} command.
@@ -190,7 +198,7 @@
         This parameter type requires a \meta{columns} specification to be set.
         The \meta{columns} describes each column by name with its own type specification.
         Like the object field, only the types \texttt{bool}, \texttt{number} and \texttt{string} are supported column types.\\
-        \showexample[20pt]{25}{25}{10}{10}
+        \showexample[20pt]{28}{28-36}{11}{11-15}
         \DescribeMacro{\fortablerow}
         Like the object, the table has no support for \cmd{\param}, but comes with a table specific command \cmd{\fortablerow}\oarg{namespace}\marg{name}\marg{csname}.
         The control sequence name \meta{csname} is a user-defined command with no arguments, containing any of the column names in a command form.
@@ -206,6 +214,24 @@
     \printbibliography[heading=bibnumbered]
 
     \clearpage
+
+    \section{Changelog}
+    \newcommand\commitline[3]{\item #1\ifx&#3&%
+    \else\\[1em]
+    #3\fi\\\hspace*{1em} — \printdate{#2}}
+    \newcommand\formatversion[3]{%
+        \item[#1]
+        \gittag[(taggerdate)(taggerdate:short)(authordate:short)]{printdate}{#1}
+        \begin{itemize}
+            \forgitcommit[s,as,b]{commitline}{#3}
+        \end{itemize}
+    }%
+    \begin{description}
+        \forgittagseq{formatversion}
+    \end{description}
+
+    \clearpage
+
     \section{Example}
 
     The source file \texttt{example.tex} is a perfect demonstration of all macros in action.

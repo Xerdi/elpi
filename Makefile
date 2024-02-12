@@ -1,6 +1,6 @@
 CONTRIBUTION = "lua-placeholders-$(shell git describe --tags --always).tar.gz"
 
-retry: clean-all build
+retry: clean-all build clean
 
 all: build clean
 
