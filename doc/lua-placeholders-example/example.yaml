@@ -1,14 +1,15 @@
 bool example: true
 string example: PeelInc.
-number example: 1
+number example: 1.21
 list example:
   - Tomatoes
   - Potatoes
 object example:
   name: John Doe
   email: j.doe@example.com
+  grade: 9.5
 table example:
   - description: Peeling tomatoes
-    price: 50.00
+    price: 50
   - description: Peeling potatoes
-    price: 25.00
+    price: 25

@@ -6,7 +6,7 @@ string example:
   placeholder: A string
 number example:
   type: number
-  default: -1
+  default: -1.21
 list example:
   type: list
   item type: string
@@ -22,6 +22,9 @@ object example:
     email:
       type: string
       placeholder: Your email
+    grade:
+      type: number
+      default: 5.5
 table example:
   type: table
   columns:

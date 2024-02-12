@@ -19,10 +19,12 @@
 
 \documentclass{article}
 \usepackage{gitinfo-lua}
-\usepackage{lua-placeholders}
+\usepackage{../../tex/lua-placeholders}
 \usepackage{listings}
 \usepackage{amsmath}
 \usepackage{calc}
+\usepackage[dutch,english]{babel}
+\usepackage[autolanguage]{numprint}
 
 \loadrecipe[\jobname]{example-specification.yaml}
 
@@ -66,9 +68,23 @@
 
     Number example:\\
 
+    \lstinline[style=TeX,morekeywords={rawparam}]|\rawparam{\jobname}{number example}|
+    $\implies$
+    \rawparam{\jobname}{number example}\\
+
     \lstinline[style=TeX,morekeywords={param}]|\param{number example}|
     $\implies$
+    \lstinline[style=TeX,morekeywords={numprint}]|\numprint{|\rawparam{\jobname}{number example}\verb|}|
+    $\implies$
     \param{number example}\\
+
+    \clearpage
+
+    Number in foreign language:\\
+
+    \lstinline[style=TeX,morekeywords={param,selectlanguage}]|\selectlanguage{dutch}\param{number example}|\\
+    $\implies$
+    \begingroup\selectlanguage{dutch}\param{number example}\endgroup\\
 
     List example:\\
 
@@ -92,14 +108,16 @@
 
     \lstinline[style=TeX,morekeywords={paramfield}]|\paramfield{object example}{name}|\\
     \lstinline[style=TeX,morekeywords={paramfield}]|\paramfield{object example}{email}|\\
+    \lstinline[style=TeX,morekeywords={paramfield}]|\paramfield{object example}{grade}|\\
     $\implies$
     \paramfield{object example}{name}
-    \paramfield{object example}{email}\\
+    \paramfield{object example}{email}
+    \paramfield{object example}{grade}\\
 
-    \begin{lstlisting}[style=TeX,morekeywords={name,email}]
+    \begin{lstlisting}[style=TeX,morekeywords={name,email,grade}]
 \newcommand\name{...}
 \begin{paramobject}{object example}
-    \name \email
+    \name \email \grade
 \end{paramobject}
 % And here it works again
 \name
@@ -108,26 +126,30 @@
     \newcommand\name{...}%
     \parbox{\linewidth}{
     \begin{paramobject}{object example}
-        \name \email
+        \name \email \grade
     \end{paramobject}
     \name
     }\\
 
     Table example:\\
 
-    \begin{lstlisting}[style=TeX,morekeywords={formatrow,fortablerow,description,price}]
+    \begin{lstlisting}[style=TeX,morekeywords={nprounddigits,npnoround,formatrow,fortablerow,description,price}]
+\nprounddigits{2}
 \newcommand\formatrow{\description & \price \\}%
 \begin{tabular}{l | l}
     \textbf{Description} & \textbf{Price} \\ \hline
     \fortablerow{table example}{formatrow}
 \end{tabular}
+\npnoround
     \end{lstlisting}
     $\implies$
+    \nprounddigits{2}
     \newcommand\formatrow{\description & \price \\}%
     \begin{tabular}{l | l}
         \textbf{Description} & \textbf{Price} \\ \hline
         \fortablerow{table example}{formatrow}
     \end{tabular}
+    \npnoround
 
 
     \section*{After values loaded}
@@ -151,9 +173,23 @@
 
     Number example:\\
 
+    \lstinline[style=TeX,morekeywords={rawparam}]|\rawparam{\jobname}{number example}|
+    $\implies$
+    \rawparam{\jobname}{number example}\\
+
     \lstinline[style=TeX,morekeywords={param}]|\param{number example}|
     $\implies$
+    \lstinline[style=TeX,morekeywords={numprint}]|\numprint{|\rawparam{\jobname}{number example}\verb|}|
+    $\implies$
     \param{number example}\\
+
+    Number in foreign language:\\
+
+    \lstinline[style=TeX,morekeywords={param,selectlanguage}]|\selectlanguage{dutch}\param{number example}|\\
+    $\implies$
+    \lstinline[style=TeX,morekeywords={numprint}]|\numprint{|\rawparam{\jobname}{number example}\lstinline|}|
+    $\implies$
+    \begingroup\selectlanguage{dutch}\param{number example}\endgroup\\
 
     List example:\\
 
@@ -177,14 +213,16 @@
 
     \lstinline[style=TeX,morekeywords={paramfield}]|\paramfield{object example}{name}|\\
     \lstinline[style=TeX,morekeywords={paramfield}]|\paramfield{object example}{email}|\\
+    \lstinline[style=TeX,morekeywords={paramfield}]|\paramfield{object example}{grade}|\\
     $\implies$
     \paramfield{object example}{name}
-    \paramfield{object example}{email}\\
+    \paramfield{object example}{email}
+    \paramfield{object example}{grade}\\
 
-    \begin{lstlisting}[style=TeX,morekeywords={name,email}]
+    \begin{lstlisting}[style=TeX,morekeywords={name,email,grade}]
 \newcommand\name{...}
 \begin{paramobject}{object example}
-    \name \email
+    \name \email \grade
 \end{paramobject}
 % And here it works again
 \name
@@ -192,34 +230,32 @@
     $\implies$
     \parbox{\linewidth}{
     \begin{paramobject}{object example}
-        \name \email
+        \name \email \grade
     \end{paramobject}
     \name
     }\\
 
     Table example:\\
 
-    \begin{lstlisting}[style=TeX,morekeywords={formatrow,fortablerow,description,price}]
+    \begin{lstlisting}[style=TeX,morekeywords={nprounddigits,npnoround,formatrow,fortablerow,description,price}]
+\nprounddigits{2}
 \newcommand\formatrow{\description & \price \\}%
 \begin{tabular}{l | l}
     \textbf{Description} & \textbf{Price} \\ \hline
     \fortablerow{table example}{formatrow}
 \end{tabular}
+\npnoround
     \end{lstlisting}
     $\implies$
+    \nprounddigits{2}%
     \begin{tabular}{l | l}
         \textbf{Description} & \textbf{Price} \\ \hline
         \fortablerow{table example}{formatrow}
     \end{tabular}
 
-    \section*{Specification File}
-    \lstinputlisting[language=YAML,numbers=left,xleftmargin=15pt,caption={example-specification.yaml},columns=fullflexible]{example-specification.yaml}
-
-    \clearpage
-
     \section*{Payload File}
     \lstinputlisting[language=YAML,numbers=left,xleftmargin={15pt},caption={example.yaml},columns=fullflexible]{example.yaml}
 
-    \section*{Fallback Payload}
-    \lstinputlisting[language=JSON,numbers=left,xleftmargin={15pt},caption={example.json},columns=fullflexible]{example.json}
+    \section*{Specification File}
+    \lstinputlisting[language=YAML,numbers=left,xleftmargin=15pt,caption={example-specification.yaml},columns=fullflexible]{example-specification.yaml}
 \end{document}
