@@ -66,7 +66,7 @@ function namespace:load_payload(values)
                 else
                     texio.write_nl('Warning: passed an unknown key ' .. key)
                 end
-                texio.write_nl('Key' .. key)
+                texio.write_nl('Info: loaded key ' .. key)
             end
         else
             texio.write_nl('Warning: Payload file was empty')
