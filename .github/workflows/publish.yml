@@ -45,6 +45,8 @@ jobs:
       - name: 'Upload Release Asset: Tar'
         id: upload_release_asset_tar
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ github.workspace }}/lua-placeholders/lua-placeholders-${{ github.ref_name }}.tar.gz
@@ -53,6 +55,8 @@ jobs:
       - name: 'Upload Release Asset: Manual'
         id: upload_release_asset_manual
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ github.workspace }}/lua-placeholders/lua-placeholders-manual.pdf
@@ -61,6 +65,8 @@ jobs:
       - name: 'Upload Release Asset: Example PDF'
         id: upload_release_asset_example_pdf
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ github.workspace }}/lua-placeholders/lua-placeholders-example/example.pdf
