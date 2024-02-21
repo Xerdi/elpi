@@ -4,9 +4,6 @@ on:
   push:
     tags:
       - '*'
-    branches:
-      - 'master'
-      - 'ci-build'
 
 jobs:
   build:
@@ -59,7 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/lua-placeholders/lua-placeholders-manual.pdf
+          asset_path: ${{ github.workspace }}/lua-placeholders/doc/lua-placeholders-manual.pdf
           asset_name: lua-placeholders-manual-${{ github.ref_name }}.pdf
           asset_content_type: application/pdf
       - name: 'Upload Release Asset: Example PDF'
@@ -69,6 +66,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/lua-placeholders/lua-placeholders-example/example.pdf
+          asset_path: ${{ github.workspace }}/lua-placeholders/doc/lua-placeholders-example/example.pdf
           asset_name: example-${{ github.ref_name }}.pdf
           asset_content_type: application/pdf
