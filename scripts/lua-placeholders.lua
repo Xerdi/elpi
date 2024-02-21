@@ -200,7 +200,11 @@ function api.with_rows(key, namespace, csname)
                 texio.write_nl("Warning: no values set for " .. param.key)
                 local format = row_content
                 for col_key, col in pairs(param.columns) do
-                    format = format:gsub('\\' .. col_key, '{\\paramplaceholder{' .. (col.placeholder or col_key) .. '}}')
+                    if col.default ~= nil then
+                        format = format:gsub('\\' .. col_key, col:val())
+                    else
+                        format = format:gsub('\\' .. col_key, '{\\paramplaceholder{' .. (col.placeholder or col_key) .. '}}')
+                    end
                 end
                 tex.print(format)
             else

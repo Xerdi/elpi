@@ -104,11 +104,20 @@ str_param = base_param:new{
 function str_param:new(key, _o)
     local o = {
         key = key,
-        placeholder = _o.placeholder
+        placeholder = _o.placeholder,
+        default = _o.default
     }
     setmetatable(o, self)
     self.__index = self
     return o
+end
+
+function str_param:val()
+    local value = self:raw_val()
+    if value then
+        local formatted, _ = string.gsub(value, '\n', ' ')
+        return formatted
+    end
 end
 
 number_param = base_param:new{
@@ -127,14 +136,14 @@ function number_param:new(key, _o)
 end
 
 function number_param:raw_val()
-    if self.value or self.default then
+    if self.value ~= nil or self.default ~= nil then
         return self.value or self.default
     end
 end
 
 function number_param:val()
     local val = self:raw_val()
-    if val then
+    if val ~= nil then
         if token.is_defined('numprint') then
             return '\\numprint{' .. val .. '}'
         else
