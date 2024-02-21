@@ -19,7 +19,9 @@ jobs:
           path: texmf
       - name: Determine if tag exists
         id: check_tag
-        run: echo ::set-output name=tag_exists::$(if git show-ref --tags --quiet; then echo true; else echo false; fi)
+        run: |
+          cd lua-placeholders
+          echo ::set-output name=tag_exists::$(if git show-ref --tags --quiet; then echo true; else echo false; fi)
       - name: Run the build process with Docker
         uses: addnab/docker-run-action@v3
         with:
