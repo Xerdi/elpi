@@ -1,6 +1,6 @@
 name: build
 
-on: [ push, pull_request ]
+on: [ push ]
 
 jobs:
   build:
@@ -17,6 +17,9 @@ jobs:
         with:
           repository: Xerdi/texmf-packaging
           path: texmf
+      - name: Determine if tag exists
+        id: check_tag
+        run: echo ::set-output name=tag_exists::$(if git show-ref --tags --quiet; then echo true; else echo false; fi)
       - name: Run the build process with Docker
         uses: addnab/docker-run-action@v3
         with:
@@ -25,9 +28,51 @@ jobs:
           options: --rm -i -v ${{ github.workspace }}/texmf:/root/texmf -v ${{ github.workspace }}:/build
           run: |
             git config --global --add safe.directory /build/lua-placeholders
-            make -C lua-placeholders build
+            if [[ "${{ steps.check_tag.outputs.tag_exists }}" == "true" ]]; then
+              make -C lua-placeholders package
+            else
+              make -C lua-placeholders build
+            fi
       - name: Archive Documentation
         uses: actions/upload-artifact@v3
         with:
           name: build
           path: ${{ github.workspace }}/lua-placeholders/doc
+      - name: Create Release
+        id: create_release
+        if: steps.check_tag.outputs.tag_exists == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Release for version ${{ github.ref }}
+      - name: 'Upload Release Asset: Tar'
+        id: upload_release_asset_tar
+        if: steps.check_tag.outputs.tag_exists == 'true'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/lua-placeholders/lua-placeholders-*.tar.gz
+          asset_name: lua-placeholders-${{ github.ref }}.tar.gz
+          asset_content_type: application/gzip
+      - name: 'Upload Release Asset: Manual'
+        id: upload_release_asset_manual
+        if: steps.check_tag.outputs.tag_exists == 'true'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/lua-placeholders/lua-placeholders-manual.pdf
+          asset_name: lua-placeholders-manual-${{ github.ref }}.pdf
+          asset_content_type: application/pdf
+      - name: 'Upload Release Asset: Example PDF'
+        id: upload_release_asset_example_pdf
+        if: steps.check_tag.outputs.tag_exists == 'true'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/lua-placeholders/lua-placeholders-example/example.pdf
+          asset_name: example-${{ github.ref }}.pdf
+          asset_content_type: application/pdf
