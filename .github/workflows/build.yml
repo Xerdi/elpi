@@ -20,8 +20,9 @@ jobs:
       - name: Determine if tag exists
         id: check_tag
         run: |
-          cd lua-placeholders
+          cd ${{ github.workspace }}/lua-placeholders
           echo ::set-output name=tag_exists::$(if git show-ref --tags --quiet; then echo true; else echo false; fi)
+          cd ${{ github.workspace }}
       - name: Run the build process with Docker
         uses: addnab/docker-run-action@v3
         with:
