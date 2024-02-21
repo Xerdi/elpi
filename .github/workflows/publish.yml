@@ -29,7 +29,9 @@ jobs:
           image: maclotsen/texlive:with-gf
           shell: bash
           options: --rm -i -v ${{ github.workspace }}/texmf:/root/texmf -v ${{ github.workspace }}:/build
-          run: make -C lua-placeholders package
+          run: |
+            git config --global --add safe.directory /build/lua-placeholders
+            make -C lua-placeholders package
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
