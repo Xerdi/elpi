@@ -1,5 +1,6 @@
 # Lua(TeX) Placeholders
 ![CTAN Version](https://img.shields.io/ctan/v/lua-placeholders)
+[![build](https://github.com/Xerdi/lua-placeholders/actions/workflows/build.yml/badge.svg)](https://github.com/Xerdi/lua-placeholders/actions/workflows/build.yml)
 
 A LaTeX package for specifying and inserting document placeholders with JSON or YAML formats.
 
