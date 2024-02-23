@@ -37,6 +37,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref_name }}
+          draft: true
           body: |
             Release for version ${{ github.ref_name }}
       - name: 'Upload Release Asset: Tar'
