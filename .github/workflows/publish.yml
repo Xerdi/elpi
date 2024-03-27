@@ -1,0 +1,72 @@
+name: publish
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          path: lua-placeholders
+          fetch-tags: true
+          fetch-depth: 0
+      - name: Check out texmf
+        uses: actions/checkout@v4
+        with:
+          repository: Xerdi/texmf-packaging
+          path: texmf
+      - name: Run the build process with Docker
+        uses: addnab/docker-run-action@v3
+        with:
+          image: maclotsen/texlive:with-gf
+          shell: bash
+          options: --rm -i -v ${{ github.workspace }}/texmf:/root/texmf -v ${{ github.workspace }}:/build
+          run: |
+            git config --global --add safe.directory /build/lua-placeholders
+            make -C lua-placeholders package
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref_name }}
+          draft: true
+          body: |
+            Release for version ${{ github.ref_name }}
+      - name: 'Upload Release Asset: Tar'
+        id: upload_release_asset_tar
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/lua-placeholders/lua-placeholders-${{ github.ref_name }}.tar.gz
+          asset_name: lua-placeholders-${{ github.ref_name }}.tar.gz
+          asset_content_type: application/gzip
+      - name: 'Upload Release Asset: Manual'
+        id: upload_release_asset_manual
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/lua-placeholders/doc/lua-placeholders-manual.pdf
+          asset_name: lua-placeholders-manual-${{ github.ref_name }}.pdf
+          asset_content_type: application/pdf
+      - name: 'Upload Release Asset: Example PDF'
+        id: upload_release_asset_example_pdf
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/lua-placeholders/doc/lua-placeholders-example/example.pdf
+          asset_name: example-${{ github.ref_name }}.pdf
+          asset_content_type: application/pdf
