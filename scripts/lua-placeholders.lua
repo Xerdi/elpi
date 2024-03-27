@@ -78,7 +78,10 @@ function api.recipe(path, namespace_name)
     else
         namespace:load_recipe(raw_recipe)
     end
+    tex.print('\\NewHook{namespace/' .. name .. '}')
+    tex.print('\\NewHook{namespace/' .. name .. '/loaded}')
     tex.print('\\UseOneTimeHook{namespace/' .. name .. '}')
+    texio.write_nl(name)
     if namespace.payload_file and not namespace.payload_loaded then
         local raw_payload = load_resource(namespace.payload_file)
         if raw_payload.namespace then
