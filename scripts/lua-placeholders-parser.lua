@@ -19,6 +19,7 @@
 -- lua-placeholders-parser.lua and lua-placeholders-types.lua
 
 local LUA_VERSION = string.sub(_VERSION, 5, -1)
+local kpse = kpse or require('kpse')
 
 yaml_supported = false
 
@@ -87,6 +88,7 @@ return function(filename)
     end
     local raw = file:read "*a"
     file:close()
+    kpse.record_input_file(filename)
     if ext == 'json' then
         return utilities.json.tolua(raw)
     else
