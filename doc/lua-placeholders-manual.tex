@@ -91,13 +91,12 @@
     For proper number formatting package \texttt{numprint}\cite{numprint} is required.
 
     \subsubsection{YAML Support}
-    If you're using JSON as \meta{recipe} and \meta{payload} format, the following requirements are no longer needed, since Lua\TeX{} already supports JSON formats out of the box.
+    Starting from version 1.0.2, the preferred YAML implementation has changed from \texttt{lyaml}\cite{lyaml} to \texttt{lua-tinyyaml}\cite{lua-tinyyaml}.
+    The reason for this change is that \texttt{lua-tinyyaml} doesn't require any platform-specific dependencies, such as \texttt{libYAML}\cite{libYAML}.
 
-    For YAML support, however, this package requires the \texttt{lyaml}\cite{lyaml} Lua module for parsing the YAML files.
-    This also includes the \texttt{libYAML}\cite{libYAML} platform dependent library and optionally LuaRocks for installing \texttt{lyaml}.
-    Another requirement is Lua, which version meets the Lua version used by Lua\TeX{}.
-    If no \texttt{LUA\_PATH} is set, and you use LuaRocks, this package tries to call the LuaRocks executable to find the \texttt{LUA\_PATH}.
-    If \texttt{lyaml} can't be loaded, this package will first try to fall back with \texttt{lua-tinyyaml}\cite{lua-tinyyaml} for lesser YAML support and secondly fall back on accepting JSON files only.
+    The older YAML implementation will still function for older installations that do not have \texttt{lua-tinyyaml}.
+    As before, when no YAML implementation is found, \texttt{lua-placeholders} will fall back to JSON support.
+
 
     \clearpage
     \section{Usage}
@@ -115,6 +114,7 @@
     \DescribeMacro{\loadpayload} The same behaviour counts for \cmd{\loadpayload}\oarg{namespace}\marg{filename}.
     The order of loading \meta{recipe} and \meta{payload} files doesn't matter.
     If the \meta{payload} file got loaded first, it will be yielded until the corresponding \meta{recipe} file is loaded.
+    When a file is loaded, a \LaTeX\ hook will trigger once for \texttt{namespace/\meta{namespace}} and once for \texttt{namespace\meta{namespace}/loaded}, respectively.
 
     All other macros of this package also take the optional \meta{namespace}, which by default is equal to \cmd{\jobname}.
     \DescribeMacro{\setnamespace} This default \meta{namespace} can be changed with \cmd{\setnamespace}\marg{new default namespace}.\\
