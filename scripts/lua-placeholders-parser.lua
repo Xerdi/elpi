@@ -23,17 +23,21 @@ local kpse = kpse or require('kpse')
 
 yaml_supported = false
 
--- Check for tiny yaml as YAML fallback option
+-- Check for tiny yaml for YAML support
 local tiny_found, tiny = pcall(require,'tinyyaml')
 if tiny_found then
-    texio.write_nl('Found fallback support for YAML (tiny yaml)')
+    texio.write_nl('Found support for YAML (tiny yaml)')
 end
 
--- Check if LUA_PATH is set
-local current_path = os.getenv('LUA_PATH')
-if current_path then
-    texio.write_nl('Info: LUA path setup up correctly. Great job!')
-elseif not tiny_found then
+
+if not tiny_found then
+    -- Check if LUA_PATH is set
+    local current_path = os.getenv('LUA_PATH')
+    if current_path then
+        texio.write_nl('Info: Found LUA path.')
+    else
+        texio.write_nl('Warning: no LUA_PATH set.')
+    end
     -- Set the LUA_PATH and LUA_CPATH using 'luarocks -lua-version <LuaLaTeX version> path'
     texio.write_nl('Warning: No LUA_PATH set. Looking for LuaRocks installation...')
     local handle = io.popen('luarocks --lua-version ' .. LUA_VERSION .. ' path')
@@ -61,15 +65,12 @@ elseif not tiny_found then
     else
         tex.error('Error: could not open a shell. Is shell-escape turned on?')
     end
-else
-    texio.write_nl('Warning: no LUA_PATH set.')
 end
 texio.write_nl('\n')
 
 -- For falling back to JSON
 require('lualibs')
 
--- Require YAML configuration files
 -- Make sure to have the apt package lua-yaml installed
 local lyaml_found, lyaml = pcall(require, 'lyaml')
 if lyaml_found or tiny_found then
@@ -92,10 +93,10 @@ return function(filename)
     if ext == 'json' then
         return utilities.json.tolua(raw)
     else
-        if lyaml_found then
-            return lyaml.load(raw)
-        elseif tiny_found then
+        if tiny_found then
             return tiny.parse(raw)
+        elseif lyaml_found then
+            return lyaml.load(raw)
         else
             tex.error('Error: no YAML support!')
         end
