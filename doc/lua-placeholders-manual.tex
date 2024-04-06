@@ -216,6 +216,11 @@
     \end{description}
 
     \clearpage
+    % Enlarge the \textwidth for the coming pages
+    \addtolength\textwidth{2cm}%
+    \setlength\linewidth{\textwidth}%
+    \addtolength\oddsidemargin{-2cm}%
+    \addtolength\evensidemargin{-1cm}%
 
     \printbibliography[heading=bibnumbered]
 
