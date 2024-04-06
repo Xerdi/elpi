@@ -1,6 +1,6 @@
 CONTRIBUTION = "lua-placeholders-$(shell git describe --tags --always).tar.gz"
 PACKAGE_DIR = ${CURDIR}
-CNF_LINE = -cnf-line TEXMFHOME={$(PACKAGE_DIR),$(shell kpsewhich --var-value TEXMFHOME)}
+CNF_LINE = -cnf-line TEXMFHOME={$(PACKAGE_DIR),$(shell kpsewhich --var-value TEXMFHOME)} -cnf-line shell_escape_commands=git
 COMPILE = lualatex --interaction=nonstopmode --shell-restricted $(CNF_LINE)
 RM = rm
 ifeq ($(OS),Windows_NT)
