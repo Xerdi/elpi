@@ -20,7 +20,7 @@
 
 \documentclass{ltxdoc}
 \usepackage[english]{babel}
-\usepackage[titlepage,authors]{gitinfo-lua}
+\usepackage[titlepage,authors,rootdir]{gitinfo-lua}
 \usepackage{listings}
 \usepackage{lua-placeholders}
 \usepackage{multicol}
@@ -225,22 +225,28 @@
     \printbibliography[heading=bibnumbered]
 
     \clearpage
-
-    \section{Change Log}
-    \newcommand\commitline[3]{\item #1\ifx&#3&%
-    \else\\[1em]
-    #3\fi\\\hspace*{1em} — \printdate{#2}}
-    \newcommand\formatversion[3]{%
-        \item[#1]
-        \gittag[(taggerdate)(taggerdate:short)(authordate:short)]{printdate}{#1}
-        \begin{itemize}
-            \forgitcommit[s,as,b]{commitline}{#3}
-        \end{itemize}
-    }%
-    \begin{description}
+    \begin{multicols}{2}
+        \section{Change Log}
+        \newcommand\setcurdate[1]{\def\curdate{#1}}%
+        \newcommand\commitline[4]{%
+            \ifthenelse{\equal{#2}{\curdate}}{}{\item[] \hrulefill~{\scriptsize\printdate{#2}}\def\curdate{#2}}%
+            \item[\href{https://github.com/Xerdi/lua-placeholders/commit/#4}{#4}]%
+            {\small\fontfamily{\sfdefault}\selectfont#1}%
+            \ifx&#3&\else\\%
+                {\footnotesize#3}%
+            \fi%
+        }
+        \newcommand\formatversion[3]{%
+            {\bfseries\large Release \href{https://github.com/Xerdi/lua-placeholders/releases/tag/#1}{#1}}~\hrulefill~%
+            \gittag[(taggerdate)(taggerdate:short)(authordate:short)]{setcurdate}{#1}%
+            {\scriptsize\gittag[(taggerdate)(taggerdate:short)(authordate:short)]{printdate}{#1}}
+            \begin{description}[font=\small\ttfamily,itemsep=1pt]
+                \forgitcommit[s,as,b,h]{commitline}{#3}
+            \end{description}
+            \bigskip
+        }%
         \forgittagseq{formatversion}
-    \end{description}
-
+    \end{multicols}
     \clearpage
 
     \section{Example}
