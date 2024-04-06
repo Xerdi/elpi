@@ -56,6 +56,12 @@
 \end{minipage}\\%
 }
 
+\usepackage[headsepline]{scrlayer-scrpage}
+\automark[section]{section}
+\lohead{\normalfont Lua placeholders {\footnotesize v\gitversion}}
+\rohead{\normalfont Section \rightmark}
+\cofoot{\thepage}
+
 \begin{document}
     \title{Lua \paramplaceholder{placeholders}\thanks{This document corresponds to \texttt{lua-placeholders} version \gitversion, written on \gitdate}}
     \maketitle
