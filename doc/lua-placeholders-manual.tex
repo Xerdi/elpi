@@ -80,28 +80,42 @@
     From thereon, the placeholders can be displayed in the document and an `\textit{example}' document can be created.
     An `\textit{actual copy}' document can be created by loading additional payload files, which all must correspond to a recipe file.
 
-    \subsection{Pros}
-    \begin{enumerate}[align=left]
-        \item Create an `\textit{example}' or `\textit{actual copy}' document with the same \LaTeX{} source and YAML recipe.
-        \item Integration within systems is as easy as compiling a normal \LaTeX{} document, especially thanks to the fallback support to JSON, which is quite renown in programming languages.
-        \item Supports multiple data types and formatting macros which work in most \TeX{} environments, like \texttt{enumerate} or \texttt{tabular}.
-    \end{enumerate}
+    \begin{multicols}{2}
+        \subsection{Pros}
+        \begin{enumerate}[align=left]
+            \item Create an `\textit{example}' or `\textit{actual copy}' document with the same \LaTeX{} source and YAML recipe.
+            \item Integration within systems is as easy as compiling a normal \LaTeX{} document, especially thanks to the fallback support to JSON, which is quite renown in programming languages.
+            \item Supports multiple data types and formatting macros which work in most \TeX{} environments, like \texttt{enumerate} or \texttt{tabular}.
+        \end{enumerate}
+        \columnbreak
+        \subsection{Cons}
+        \begin{enumerate}[align=left]
+            \item The package only works with Lua\LaTeX{}.
+            \item In order for the files to be loaded, commandline option `\texttt{--shell-restricted}' is required.
+        \end{enumerate}
+        \textbf{Important:} Up until version 1.0.3, this documentation suggested `\texttt{--shell-escape}' instead, which allows the execution of programs and isn't a requirement for this package since the introduction of \texttt{lua-tinyyaml}.
+    \end{multicols}
 
-    \subsection{Cons}
-    \begin{enumerate}[align=left]
-        \item The package only works with Lua\LaTeX{}.
-        \item In order for the files to be loaded, commandline option `\texttt{--shell-escape}' is required.
-    \end{enumerate}
+    \begin{multicols}{2}
+        \subsection{Security Considerations}
+        When using \texttt{--shell-escape} instead of \texttt{--shell-restricted}, one should be aware of the security vulnerabilities it might introduce.
+        While it may not seem to be a risk for most users and use cases, for best practices, one should avoid using \texttt{--shell-escape}, since this package is meant for seamless workflow integration, which could introduce vulnerabilities in an unknown variety of ways.
 
-    \subsection{Prerequisites}
-    For proper number formatting package \texttt{numprint}\cite{numprint} is required.
+        Therefore, I urge everyone that still requires the execution of programs to whitelist those programs in \texttt{shell\_escape\_commands} instead.
+        This can be configured system-wide in \texttt{texmf.cnf} or within a Lua initialization script using the \texttt{texconfig} table, thoroughly explained in section 4.1.3, 4.2.4 and 10.4 of the Lua\TeX\ manual\cite{luatex}.
 
-    \subsubsection{YAML Support}
-    Starting from version 1.0.2, the preferred YAML implementation has changed from \texttt{lyaml}\cite{lyaml} to \texttt{lua-tinyyaml}\cite{lua-tinyyaml}.
-    The reason for this change is that \texttt{lua-tinyyaml} doesn't require any platform-specific dependencies, such as \texttt{libYAML}\cite{libYAML}.
+        \columnbreak
 
-    The older YAML implementation will still function for older installations that do not have \texttt{lua-tinyyaml}.
-    As before, when no YAML implementation is found, \texttt{lua-placeholders} will fall back to JSON support.
+        \subsection{Dependencies}
+        For proper number formatting, package \texttt{numprint}\cite{numprint} is required.
+        For booleans, the package \texttt{ifthen}\cite{ifthen} is required.
+        \subsubsection{YAML Support}
+        Starting from version 1.0.2, the preferred YAML implementation has changed from \texttt{lyaml}\cite{lyaml} to \texttt{lua-tinyyaml}\cite{lua-tinyyaml}.
+        The reason for this change is that \texttt{lua-tinyyaml} doesn't require any platform-specific dependencies, such as \texttt{libYAML}\cite{libYAML}.
+
+        The older YAML implementation will still function for older installations that do not have \texttt{lua-tinyyaml}.
+        As before, when no YAML implementation is found, \texttt{lua-placeholders} will fall back to JSON support.
+    \end{multicols}
 
 
     \clearpage

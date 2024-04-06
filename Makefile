@@ -1,13 +1,13 @@
 CONTRIBUTION = "lua-placeholders-$(shell git describe --tags --always).tar.gz"
 PACKAGE_DIR = ${CURDIR}
 CNF_LINE = -cnf-line TEXMFHOME={$(PACKAGE_DIR),$(shell kpsewhich --var-value TEXMFHOME)}
-COMPILE = lualatex --interaction=nonstopmode --shell-escape $(CNF_LINE)
+COMPILE = lualatex --interaction=nonstopmode --shell-restricted $(CNF_LINE)
 RM = rm
 ifeq ($(OS),Windows_NT)
 	RM = del
 endif
 
-retry: clean-all build clean
+.PHONY: doc/lua-placeholders-manual.pdf doc/lua-placeholders-example/example.pdf
 
 all: build clean
 
