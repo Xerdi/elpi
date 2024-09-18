@@ -255,7 +255,7 @@
             \gittag[(taggerdate)(taggerdate:short)(authordate:short)]{setcurdate}{#1}%
             {\scriptsize\gittag[(taggerdate)(taggerdate:short)(authordate:short)]{printdate}{#1}}
             \begin{description}[font=\small\ttfamily,itemsep=1pt]
-                \forgitcommit[s,as,b,h]{commitline}{#3}
+                \forgitcommit[s,as,b,h]{commitline}{#3,flags={no-merges}}
             \end{description}
             \bigskip
         }%
