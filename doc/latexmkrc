@@ -1,0 +1,5 @@
+# Used for removing the .bbl file
+$bibtex_use = 2;
+
+# Cleanup extra auxiliary files
+push @generated_exts, "atfi";
